@@ -1,14 +1,1 @@
-mainmet Web Game 1080p
-=======================
-- High quality WebGL rendering up to 1080p/2x device pixel ratio
-- First-person block world
-- Physics: gravity, collision, jump, sprint
-- Break/place blocks
-- First-person Steve-like hand
-- Hotbar 1-6
-- Pause menu + return to main menu
-- Fullscreen
-- Mobile touch controls
-- Portrait phones show a rotate-to-landscape screen
-
-This is an original browser game inspired by the block-building/survival genre, not an official Minecraft Java 26.2 client.
+mainmet Web Game v3: richer procedural textures, safer spawn, 36-slot inventory, keyboard guide before entry, roaming sheep/cow-like mobs, improved world generation, pause + W-to-menu, R new world, HD lighting/shadows. Independent browser game, not the official Minecraft client.
