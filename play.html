@@ -235,8 +235,10 @@ function removeBlock(x,y,z){
 function rnd(x,z){let n=Math.sin(x*127.1+z*311.7)*43758.5453;return n-Math.floor(n)}
 const heights=new Map();
 function heightAt(x,z){
- const n=rnd(x,z);
- return 3+Math.floor(n*2+Math.sin(x*.22)*.6+Math.cos(z*.19)*.55);
+ const a=Math.sin(x*.13)*.90+Math.cos(z*.11)*.82;
+ const b=Math.sin((x+z)*.07)*.65+Math.cos((x-z)*.055)*.55;
+ const c=Math.sin(x*.035+z*.045)*.45;
+ return Math.max(2,Math.min(8,Math.round(4.1+a*.55+b*.55+c)));
 }
 for(let x=-30;x<=30;x++)for(let z=-30;z<=30;z++){
  const h=Math.max(2,heightAt(x,z));heights.set(key(x,0,z),h);
@@ -256,7 +258,7 @@ for(let x=-27;x<=27;x+=5)for(let z=-27;z<=27;z+=5){
 
 /* ---------- roaming mobs ---------- */
 const mobs=[];const bodyGeo=new THREE.BoxGeometry(.9,.62,1.25),headGeo=new THREE.BoxGeometry(.58,.55,.58),legGeo=new THREE.BoxGeometry(.18,.55,.18);
-function spawnMob(x,z,type){const g=new THREE.Group(),y=heightAt(Math.floor(x),Math.floor(z))+1;const bm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xe8e7df:0x6b472c}),hm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xd9d9d4:0x56371f});const b=new THREE.Mesh(bodyGeo,bm);b.position.y=.7;b.castShadow=false;g.add(b);const h=new THREE.Mesh(headGeo,hm);h.position.set(0,1.05,.72);h.castShadow=false;g.add(h);for(const sx of[-.3,.3])for(const sz of[-.42,.42]){const l=new THREE.Mesh(legGeo,new THREE.MeshLambertMaterial({color:0x333333}));l.position.set(sx,.25,sz);l.castShadow=true;g.add(l)}g.position.set(x+.5,y,z+.5);scene.add(g);mobs.push({g,phase:rnd(x+7,z+3)*6.28,speed:.25+rnd(x+2,z+8)*.3})}
+function spawnMob(x,z,type){const g=new THREE.Group(),y=heightAt(Math.floor(x),Math.floor(z))+1;const bm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xe8e7df:0x6b472c}),hm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xd9d9d4:0x56371f});const b=new THREE.Mesh(bodyGeo,bm);b.position.y=.7;b.castShadow=false;g.add(b);const h=new THREE.Mesh(headGeo,hm);h.position.set(0,1.05,.72);h.castShadow=false;g.add(h);for(const sx of[-.3,.3])for(const sz of[-.42,.42]){const l=new THREE.Mesh(legGeo,new THREE.MeshLambertMaterial({color:0x333333}));l.position.set(sx,.25,sz);l.castShadow=false;g.add(l)}g.position.set(x+.5,y,z+.5);scene.add(g);mobs.push({g,phase:rnd(x+7,z+3)*6.28,speed:.25+rnd(x+2,z+8)*.3})}
 for(let i=0;i<16;i++){const x=Math.floor(rnd(i*13,5)*64-32),z=Math.floor(rnd(7,i*17)*64-32);if(Math.hypot(x,z-8)>12)spawnMob(x,z,i%2?'sheep':'cow')}
 function updateMobs(dt){for(const m of mobs){m.phase+=dt*m.speed;const dx=Math.sin(m.phase)*dt*m.speed*.9,dz=Math.cos(m.phase*.71)*dt*m.speed*.9;m.g.position.x+=dx;m.g.position.z+=dz;m.g.position.y=heightAt(Math.floor(m.g.position.x),Math.floor(m.g.position.z))+1;m.g.rotation.y=Math.atan2(dx,dz)}}
 
