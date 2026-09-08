@@ -1,0 +1,9 @@
+{
+  "name": "ArMaCraft",
+  "host": "ArMaCraftnet.aternos.me",
+  "port": 60107,
+  "minecraft": "1.21.11",
+  "loader": "Fabric",
+  "wssProxy": "",
+  "worldBorderBlocks": 5000
+}
