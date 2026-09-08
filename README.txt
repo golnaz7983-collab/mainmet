@@ -1,13 +1,10 @@
-mainmet Web Game v4
-====================
-بر پایه v3 و فقط با تغییرات درخواستی:
-- کلید حرکت جلو: Z
-- کلیدهای حرکت: Z Q S D
-- W فقط در منوی Pause برای برگشت به منوی اصلی
-- دکمه تمام‌صفحه ابتدای بازی با fallback برای مرورگرهای قدیمی‌تر اصلاح شد
-- شروع بازی مستقل از Fullscreen است و اگر مرورگر Fullscreen را نپذیرد، بازی باز هم اجرا می‌شود
-- تکسچرهای procedural با وضوح 128x128 و جزئیات بیشتر
-- دست اول‌شخص سه‌بعدی‌تر با arm/forearm/palm/fingers
-- تمام امکانات v3 حفظ شده‌اند
-
-توجه: این بازی WebGL مستقل و الهام‌گرفته از سبک Minecraft است، نه کلاینت رسمی Minecraft Java.
+mainmet Web Game v5
+--------------------
+- Rebuilt from the previous v4 game file.
+- Minecraft-inspired block background and Minecraft-style buttons.
+- Start Game button fixed: it does not depend on fullscreen or pointer lock.
+- Fullscreen is a separate button with browser fallbacks.
+- ZQSD movement; W only exits to main menu while Pause is open.
+- Higher-detail 128x128 procedural block textures.
+- 3D-style first-person Steve arm/hand with forearm, palm, fingers and thumb.
+- Inventory, trees, mobs, physics, breaking/placing blocks and mobile landscape controls retained.
