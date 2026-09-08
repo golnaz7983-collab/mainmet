@@ -1,0 +1,13 @@
+{
+  "name": "armacraft-v26-2-panel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ArMaCraft Minecraft Java 26.2 server panel starter",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
