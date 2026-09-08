@@ -16,103 +16,39 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Patch mainmet
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-
-          p = Path('play.html')
-          s = p.read_text(encoding='utf-8')
-
-          s = s.replace('c.width=c.height=256;', 'c.width=c.height=512;')
-          s = s.replace('for(let i=0;i<2600;i++)', 'for(let i=0;i<5200;i++)')
-          s = s.replace('for(let i=0;i<420;i++)', 'for(let i=0;i<800;i++)')
-          s = s.replace('WEB GAME 256', 'WEB GAME 512')
-          s = s.replace('256×256 TEXTURES', '512×512 TEXTURES')
-          s = s.replace('Web Game 256×256', 'Web Game 512×512')
-          s = s.replace('mainmet • Web Game HD', 'mainmet • Web Game 512')
-
-          css = r'''/* ===== ArMaCraft account + skin layer ===== */
-          #armaModal{position:fixed;inset:0;z-index:120;background:#000c;display:none;align-items:center;justify-content:center;padding:18px}
-          #armaModal.show{display:flex}
-          .armaBox{width:min(720px,95vw);max-height:92vh;overflow:auto;background:#151815;border:3px solid #555;box-shadow:0 24px 90px #000;color:#fff;padding:20px;text-align:right;direction:rtl}
-          .armaTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #555;padding-bottom:10px;margin-bottom:12px}
-          .armaTitle h2{margin:0;font-size:25px}.armaBadge{background:#2f6d36;border:1px solid #7bc37e;padding:5px 9px;border-radius:4px;font-size:11px}
-          .armaGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.armaField{display:grid;gap:5px}.armaField.full{grid-column:1/-1}.armaField label{font-size:12px;color:#ccc}.armaField input{background:#0b0d0b;color:#fff;border:1px solid #666;padding:11px;border-radius:4px;font:inherit;direction:ltr}
-          .armaSkins{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0}.armaSkin{border:2px solid #555;background:#242824;padding:7px;border-radius:4px;cursor:pointer;text-align:center}.armaSkin.sel{border-color:#fff;box-shadow:0 0 0 2px #5e8e43}.armaSkin i{display:block;width:44px;height:58px;margin:auto;background:linear-gradient(#e4ad87 0 28%,var(--shirt) 28% 72%,#222 72%);border:2px solid #111;image-rendering:pixelated}.armaSkin b{display:block;font-size:9px;margin-top:4px}.armaNote{font-size:11px;line-height:1.8;color:#ccc;background:#211f16;border:1px solid #66592d;padding:10px;border-radius:4px;margin:10px 0}.armaStatus{font-size:12px;line-height:1.8;padding:10px;border:1px solid #454b45;background:#0e110e;border-radius:4px;white-space:pre-wrap}.armaActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.armaActions button{flex:1;min-width:150px}
-          @media(max-width:650px){.armaGrid{grid-template-columns:1fr}.armaField.full{grid-column:auto}.armaSkins{grid-template-columns:repeat(3,1fr)}}
+          p=Path('play.html'); s=p.read_text(encoding='utf-8')
+          s=s.replace('c.width=c.height=256;', 'c.width=c.height=512;').replace('for(let i=0;i<2600;i++)','for(let i=0;i<5200;i++)').replace('for(let i=0;i<420;i++)','for(let i=0;i<800;i++)')
+          s=s.replace('WEB GAME 256','WEB GAME 512').replace('256×256 TEXTURES','512×512 TEXTURES').replace('Web Game 256×256','Web Game 512×512').replace('mainmet • Web Game HD','mainmet • Web Game 512')
+          css=r'''/* ===== ArMaCraft account + skin layer ===== */
+          #armaModal{position:fixed;inset:0;z-index:120;background:#000c;display:none;align-items:center;justify-content:center;padding:18px}#armaModal.show{display:flex}.armaBox{width:min(720px,95vw);max-height:92vh;overflow:auto;background:#151815;border:3px solid #555;box-shadow:0 24px 90px #000;color:#fff;padding:20px;text-align:right;direction:rtl}.armaTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #555;padding-bottom:10px;margin-bottom:12px}.armaTitle h2{margin:0;font-size:25px}.armaBadge{background:#2f6d36;border:1px solid #7bc37e;padding:5px 9px;border-radius:4px;font-size:11px}.armaGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.armaField{display:grid;gap:5px}.armaField.full{grid-column:1/-1}.armaField label{font-size:12px;color:#ccc}.armaField input{background:#0b0d0b;color:#fff;border:1px solid #666;padding:11px;border-radius:4px;font:inherit;direction:ltr}.armaSkins{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0}.armaSkin{border:2px solid #555;background:#242824;padding:7px;border-radius:4px;cursor:pointer;text-align:center}.armaSkin.sel{border-color:#fff;box-shadow:0 0 0 2px #5e8e43}.armaSkin i{display:block;width:44px;height:58px;margin:auto;background:linear-gradient(#e4ad87 0 28%,var(--shirt) 28% 72%,#222 72%);border:2px solid #111;image-rendering:pixelated}.armaSkin b{display:block;font-size:9px;margin-top:4px}.armaNote{font-size:11px;line-height:1.8;color:#ccc;background:#211f16;border:1px solid #66592d;padding:10px;border-radius:4px;margin:10px 0}.armaStatus{font-size:12px;line-height:1.8;padding:10px;border:1px solid #454b45;background:#0e110e;border-radius:4px;white-space:pre-wrap}.armaActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.armaActions button{flex:1;min-width:150px}@media(max-width:650px){.armaGrid{grid-template-columns:1fr}.armaField.full{grid-column:auto}.armaSkins{grid-template-columns:repeat(3,1fr)}}
           '''
-          if '/* ===== ArMaCraft account + skin layer ===== */' not in s:
-              s = s.replace('</style>', css + '\n</style>', 1)
-
-          html = r'''<div id="armaModal">
-            <div class="armaBox">
-              <div class="armaTitle"><h2>⛏ ArMaCraft • ورود آنلاین</h2><span class="armaBadge">FABRIC 1.21.x</span></div>
-              <div class="armaNote"><b>اکانت:</b> رمز در سایت ذخیره نمی‌شود. بعد از انتخاب نام و رمز، دستور <code>/register</code> یا <code>/login</code> ساخته و کپی می‌شود. برای اجرای واقعی این دستورات، سرور باید مود احراز هویت سمت‌سرور داشته باشد.</div>
-              <div class="armaGrid">
-                <div class="armaField"><label>نام اکانت</label><input id="armaUser" maxlength="16" autocomplete="username" placeholder="ArMaPlayer"></div>
-                <div class="armaField"><label>رمز</label><input id="armaPass" type="password" maxlength="64" autocomplete="new-password" placeholder="رمز خودت"></div>
-                <div class="armaField full"><label>WSS Proxy اتصال مرورگر</label><input id="armaWss" placeholder="wss://proxy.example.com/arma"></div>
-              </div>
-              <h3>🎨 انتخاب Skin</h3>
-              <div class="armaSkins">
-                <div class="armaSkin sel" data-skin="classic"><i style="--shirt:#2f79a8"></i><b>Classic</b></div>
-                <div class="armaSkin" data-skin="green"><i style="--shirt:#3f8b46"></i><b>Green</b></div>
-                <div class="armaSkin" data-skin="red"><i style="--shirt:#a84942"></i><b>Red</b></div>
-                <div class="armaSkin" data-skin="black"><i style="--shirt:#333"></i><b>Dark</b></div>
-                <div class="armaSkin" data-skin="gold"><i style="--shirt:#a77a2f"></i><b>Gold</b></div>
-                <div class="armaSkin" data-skin="purple"><i style="--shirt:#714a9e"></i><b>Purple</b></div>
-              </div>
-              <div class="armaActions">
-                <button class="mcbtn green" id="armaRegister">📝 ساخت Register</button>
-                <button class="mcbtn blue" id="armaLogin">🔐 ساخت Login</button>
-                <button class="mcbtn" id="armaJoin">🌐 Join ArMaCraft</button>
-                <button class="mcbtn" id="armaClose">بستن</button>
-              </div>
-              <div id="armaStatus" class="armaStatus">وضعیت: آماده</div>
-            </div>
-          </div>
-          '''
-          if 'id="armaModal"' not in s:
-              s = s.replace('<div id="rotate">', html + '\n<div id="rotate">', 1)
-
-          js = r'''<script>
-          /* ===== mainmet ArMaCraft account/skin helper ===== */
-          (function(){
-            const modal=document.getElementById('armaModal'); if(!modal)return;
-            const user=document.getElementById('armaUser'), pass=document.getElementById('armaPass'), wss=document.getElementById('armaWss'), status=document.getElementById('armaStatus');
-            const skins=[...document.querySelectorAll('.armaSkin')];
-            let selectedSkin=localStorage.getItem('mainmet.skin')||'classic';
-            skins.forEach(el=>{el.classList.toggle('sel',el.dataset.skin===selectedSkin);el.onclick=()=>{selectedSkin=el.dataset.skin;localStorage.setItem('mainmet.skin',selectedSkin);skins.forEach(x=>x.classList.remove('sel'));el.classList.add('sel');status.textContent='Skin انتخاب شد: '+selectedSkin;}});
-            wss.value=localStorage.getItem('mainmet.arma.wss')||''; wss.onchange=()=>localStorage.setItem('mainmet.arma.wss',wss.value.trim());
-            user.value=localStorage.getItem('mainmet.arma.user')||''; user.onchange=()=>localStorage.setItem('mainmet.arma.user',user.value.trim());
-            function clean(){return user.value.trim().replace(/[^A-Za-z0-9_]/g,'').slice(0,16)}
-            async function copy(text){try{await navigator.clipboard.writeText(text);status.textContent='کپی شد:\n'+text}catch(e){status.textContent='کپی خودکار نشد؛ دستی کپی کن:\n'+text}}
-            document.getElementById('armaRegister').onclick=()=>{const p=pass.value;if(!clean()||!p){status.textContent='نام اکانت و رمز را وارد کن.';return}copy('/register '+p+' '+p)};
-            document.getElementById('armaLogin').onclick=()=>{const p=pass.value;if(!clean()||!p){status.textContent='نام اکانت و رمز را وارد کن.';return}copy('/login '+p)};
-            document.getElementById('armaJoin').onclick=()=>{const target=wss.value.trim();if(!target){status.textContent='اتصال مستقیم مرورگر به ArMaCraftnet.aternos.me:60107 ممکن نیست. برای Join واقعی از سایت، یک WebSocket/WSS Proxy جدا لازم است.';return}if(!/^wss?:\/\//i.test(target)){status.textContent='آدرس باید با ws:// یا wss:// شروع شود.';return}localStorage.setItem('mainmet.arma.wss',target);status.textContent='WSS ذخیره شد: '+target;window.dispatchEvent(new CustomEvent('mainmet:armaJoin',{detail:{wss:target,user:clean(),skin:selectedSkin}}));};
-            document.getElementById('armaClose').onclick=()=>modal.classList.remove('show');
-            window.mainmetOpenArmaCraft=()=>modal.classList.add('show');
-            window.mainmetArmaProfile=()=>({user:clean(),skin:selectedSkin,wss:wss.value.trim()});
-            const tip=document.getElementById('tip'); if(tip){const b=document.createElement('button');b.className='mcbtn green';b.style.cssText='margin-top:7px;width:auto;padding:7px 12px';b.textContent='⛏ ورود ArMaCraft';b.onclick=()=>mainmetOpenArmaCraft();tip.appendChild(b)}
-          })();
-          </script>
-          '''
-          if 'mainmet ArMaCraft account/skin helper' not in s:
-              s = s.replace('</body>', js + '\n</body>', 1)
-
+          if '/* ===== ArMaCraft account + skin layer ===== */' not in s:s=s.replace('</style>',css+'\n</style>',1)
+          html=r'''<div id="armaModal"><div class="armaBox"><div class="armaTitle"><h2>⛏ ArMaCraft • ورود آنلاین</h2><span class="armaBadge">FABRIC 1.21.x</span></div><div class="armaNote"><b>اکانت:</b> رمز در سایت ذخیره نمی‌شود. بعد از انتخاب نام و رمز، دستور <code>/register</code> یا <code>/login</code> ساخته و کپی می‌شود. برای اجرای واقعی این دستورات، سرور باید مود احراز هویت سمت‌سرور داشته باشد.</div><div class="armaGrid"><div class="armaField"><label>نام اکانت</label><input id="armaUser" maxlength="16" autocomplete="username" placeholder="ArMaPlayer"></div><div class="armaField"><label>رمز</label><input id="armaPass" type="password" maxlength="64" autocomplete="new-password" placeholder="رمز خودت"></div><div class="armaField full"><label>WSS Proxy اتصال مرورگر</label><input id="armaWss" placeholder="wss://proxy.example.com/arma"></div></div><h3>🎨 انتخاب Skin</h3><div class="armaSkins"><div class="armaSkin sel" data-skin="classic"><i style="--shirt:#2f79a8"></i><b>Classic</b></div><div class="armaSkin" data-skin="green"><i style="--shirt:#3f8b46"></i><b>Green</b></div><div class="armaSkin" data-skin="red"><i style="--shirt:#a84942"></i><b>Red</b></div><div class="armaSkin" data-skin="black"><i style="--shirt:#333"></i><b>Dark</b></div><div class="armaSkin" data-skin="gold"><i style="--shirt:#a77a2f"></i><b>Gold</b></div><div class="armaSkin" data-skin="purple"><i style="--shirt:#714a9e"></i><b>Purple</b></div></div><div class="armaActions"><button class="mcbtn green" id="armaRegister">📝 ساخت Register</button><button class="mcbtn blue" id="armaLogin">🔐 ساخت Login</button><button class="mcbtn" id="armaJoin">🌐 Join ArMaCraft</button><button class="mcbtn" id="armaClose">بستن</button></div><div id="armaStatus" class="armaStatus">وضعیت: آماده</div></div></div>'''
+          if 'id="armaModal"' not in s:s=s.replace('<div id="rotate">',html+'\n<div id="rotate">',1)
+          js=r'''<script>(function(){const modal=document.getElementById('armaModal');if(!modal)return;const user=document.getElementById('armaUser'),pass=document.getElementById('armaPass'),wss=document.getElementById('armaWss'),status=document.getElementById('armaStatus'),skins=[...document.querySelectorAll('.armaSkin')];let selectedSkin=localStorage.getItem('mainmet.skin')||'classic';skins.forEach(el=>{el.classList.toggle('sel',el.dataset.skin===selectedSkin);el.onclick=()=>{selectedSkin=el.dataset.skin;localStorage.setItem('mainmet.skin',selectedSkin);skins.forEach(x=>x.classList.remove('sel'));el.classList.add('sel');status.textContent='Skin انتخاب شد: '+selectedSkin}});wss.value=localStorage.getItem('mainmet.arma.wss')||'';wss.onchange=()=>localStorage.setItem('mainmet.arma.wss',wss.value.trim());user.value=localStorage.getItem('mainmet.arma.user')||'';user.onchange=()=>localStorage.setItem('mainmet.arma.user',user.value.trim());function clean(){return user.value.trim().replace(/[^A-Za-z0-9_]/g,'').slice(0,16)}async function copy(t){try{await navigator.clipboard.writeText(t);status.textContent='کپی شد:\n'+t}catch(e){status.textContent='کپی خودکار نشد؛ دستی کپی کن:\n'+t}}document.getElementById('armaRegister').onclick=()=>{const p=pass.value;if(!clean()||!p){status.textContent='نام اکانت و رمز را وارد کن.';return}copy('/register '+p+' '+p)};document.getElementById('armaLogin').onclick=()=>{const p=pass.value;if(!clean()||!p){status.textContent='نام اکانت و رمز را وارد کن.';return}copy('/login '+p)};document.getElementById('armaJoin').onclick=()=>{const target=wss.value.trim();if(!target){status.textContent='اتصال مستقیم مرورگر به ArMaCraftnet.aternos.me:60107 ممکن نیست. برای Join واقعی از سایت، یک WebSocket/WSS Proxy جدا لازم است.';return}if(!/^wss?:\/\//i.test(target)){status.textContent='آدرس باید با ws:// یا wss:// شروع شود.';return}localStorage.setItem('mainmet.arma.wss',target);status.textContent='WSS ذخیره شد: '+target;window.dispatchEvent(new CustomEvent('mainmet:armaJoin',{detail:{wss:target,user:clean(),skin:selectedSkin}}))};document.getElementById('armaClose').onclick=()=>modal.classList.remove('show');window.mainmetOpenArmaCraft=()=>modal.classList.add('show');window.mainmetArmaProfile=()=>({user:clean(),skin:selectedSkin,wss:wss.value.trim()});const tip=document.getElementById('tip');if(tip){const b=document.createElement('button');b.className='mcbtn green';b.style.cssText='margin-top:7px;width:auto;padding:7px 12px';b.textContent='⛏ ورود ArMaCraft';b.onclick=()=>mainmetOpenArmaCraft();tip.appendChild(b)}})();</script>'''
+          if 'mainmet ArMaCraft account/skin helper' not in s:s=s.replace('</body>',js+'\n</body>',1)
           p.write_text(s,encoding='utf-8')
-          Path('ARMACRAFT_SETUP.md').write_text('''# ArMaCraft online setup\n\n- Host: `ArMaCraftnet.aternos.me`\n- Port: `60107`\n- Software: Fabric\n- Version shown in Aternos: `1.21.11 (0.19.3)`\n- `online-mode=false`\n\nA normal Aternos Java TCP address cannot be connected to directly from a browser. Browser multiplayer needs a WebSocket/WSS-to-TCP proxy in front of the Java server.\n\nFor account registration/login, use a server-side Fabric authentication mod. **Authenticate** supports `/register <password> <confirm>` and `/login <password>` on supported Fabric versions. **AuthCore** is another server-side Fabric option with BCrypt + SQLite for 1.21.1. Never store player passwords in GitHub Pages/localStorage.\n\nFor a 5 km x 5 km playable area, use a 5000-block world border on the Java server. That is 25 km² = 2500 hectares. Let the Java server generate chunks as players explore rather than generating a 5000x5000 browser map at once.\n\nThe mainmet Join UI is ready for the WSS endpoint. The final real online join requires deploying a compatible EaglercraftX WebSocket proxy (normally with Velocity/Bungee) and then entering its `wss://...` endpoint in the ArMaCraft panel.\n''',encoding='utf-8')
-          Path('server-config.json').write_text('''{\n  "name": "ArMaCraft",\n  "host": "ArMaCraftnet.aternos.me",\n  "port": 60107,\n  "minecraft": "1.21.11",\n  "loader": "Fabric",\n  "wssProxy": "",\n  "worldBorderBlocks": 5000\n}\n''',encoding='utf-8')
-          PY
 
+          q=Path('index.html'); h=q.read_text(encoding='utf-8')
+          marker='<!-- mainmet ArMaCraft quick join -->'
+          if marker not in h:
+              needle='<button class="mcbtn green" onclick="openPanel(\'play\')">🎮 بازی کردن</button>'
+              add=needle+'\n<button class="mcbtn gold" onclick="openPanel(\'play\');setTimeout(()=>document.getElementById(\'gameFrame\').contentWindow.mainmetOpenArmaCraft?.(),350)">⛏ ArMaCraft Online</button>\n'+marker
+              h=h.replace(needle,add,1)
+              q.write_text(h,encoding='utf-8')
+          Path('ARMACRAFT_SETUP.md').write_text('''# ArMaCraft online setup\n\n- Host: `ArMaCraftnet.aternos.me`\n- Port: `60107`\n- Software: Fabric\n- Version shown in Aternos: `1.21.11 (0.19.3)`\n- `online-mode=false`\n\nA normal Aternos Java TCP address cannot be connected to directly from a browser. Browser multiplayer needs a WebSocket/WSS-to-TCP proxy in front of the Java server.\n\nFor account registration/login, use a server-side Fabric authentication mod. Authenticate supports `/register <password> <confirm>` and `/login <password>` on supported Fabric versions. AuthCore is another server-side Fabric option with BCrypt + SQLite for 1.21.1. Never store player passwords in GitHub Pages/localStorage.\n\nFor a 5 km x 5 km playable area, use a 5000-block world border on the Java server. That is 25 km² = 2500 hectares. Let the Java server generate chunks as players explore.\n\nThe mainmet Join UI is ready for the WSS endpoint. The final real online join requires deploying a compatible EaglercraftX WebSocket proxy (normally with Velocity/Bungee) and then entering its `wss://...` endpoint in the ArMaCraft panel.\n''',encoding='utf-8')
+          Path('server-config.json').write_text('''{\n  "name":"ArMaCraft","host":"ArMaCraftnet.aternos.me","port":60107,"minecraft":"1.21.11","loader":"Fabric","wssProxy":"","worldBorderBlocks":5000\n}\n''',encoding='utf-8')
+          PY
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add play.html ARMACRAFT_SETUP.md server-config.json
+          git add play.html index.html ARMACRAFT_SETUP.md server-config.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Add ArMaCraft online account and skin layer"
+          git commit -m "Add ArMaCraft quick join and online account UI"
           git push
