@@ -67,6 +67,9 @@ canvas{display:block;width:100%;height:100%}
 .armaSkins{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0}.armaSkin{border:2px solid #555;background:#242824;padding:7px;border-radius:4px;cursor:pointer;text-align:center}.armaSkin.sel{border-color:#fff;box-shadow:0 0 0 2px #5e8e43}.armaSkin i{display:block;width:44px;height:58px;margin:auto;background:linear-gradient(#e4ad87 0 28%,var(--shirt) 28% 72%,#222 72%);border:2px solid #111;image-rendering:pixelated}.armaSkin b{display:block;font-size:9px;margin-top:4px}.armaNote{font-size:11px;line-height:1.8;color:#ccc;background:#211f16;border:1px solid #66592d;padding:10px;border-radius:4px;margin:10px 0}.armaStatus{font-size:12px;line-height:1.8;padding:10px;border:1px solid #454b45;background:#0e110e;border-radius:4px;white-space:pre-wrap}.armaActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.armaActions button{flex:1;min-width:150px}
 @media(max-width:650px){.armaGrid{grid-template-columns:1fr}.armaField.full{grid-column:auto}.armaSkins{grid-template-columns:repeat(3,1fr)}}
 
+
+/* ===== Remember ArMaCraft online account ===== */
+.armaRemember{display:flex;align-items:center;gap:8px;margin:10px 0;padding:9px;background:#0e110e;border:1px solid #454b45;border-radius:4px;font-size:12px;color:#ddd}.armaRemember input{width:18px;height:18px;accent-color:#70a84f}
 </style>
 </head>
 <body>
@@ -446,5 +449,40 @@ loop(last);
 })();
 </script>
 
+
+<script>
+/* ===== Remember ArMaCraft online account ===== */
+(function(){
+  const user=document.getElementById('armaUser');
+  const remember=document.getElementById('armaRemember');
+  const status=document.getElementById('armaStatus');
+  if(!user||!remember)return;
+  const saved=localStorage.getItem('mainmet.arma.remember')==='1';
+  remember.checked=saved;
+  if(saved && !user.value) user.value=localStorage.getItem('mainmet.arma.user')||localStorage.getItem('mainmet.arma.lastOnlineUser')||'';
+  remember.addEventListener('change',()=>{
+    localStorage.setItem('mainmet.arma.remember',remember.checked?'1':'0');
+    if(remember.checked && user.value.trim()) localStorage.setItem('mainmet.arma.user',user.value.trim());
+  });
+  user.addEventListener('input',()=>{
+    if(remember.checked) localStorage.setItem('mainmet.arma.user',user.value.trim());
+  });
+  window.addEventListener('mainmet:armaJoin',e=>{
+    const u=e.detail?.user||user.value.trim();
+    if(remember.checked && u){
+      localStorage.setItem('mainmet.arma.user',u);
+      localStorage.setItem('mainmet.arma.lastOnlineUser',u);
+      localStorage.setItem('mainmet.arma.lastOnlineAt',new Date().toISOString());
+      if(status) status.textContent='اکانت «'+u+'» برای ورود آنلاین به خاطر سپرده شد. رمز در سایت ذخیره نمی‌شود.';
+    }
+  });
+  const last=localStorage.getItem('mainmet.arma.lastOnlineUser');
+  const at=localStorage.getItem('mainmet.arma.lastOnlineAt');
+  if(saved && last && status && !status.textContent){
+    status.textContent='آخرین اکانت آنلاین: '+last+(at?'
+آخرین استفاده: '+new Date(at).toLocaleString('fa-IR'): '');
+  }
+})();
+</script>
 </body>
 </html>
