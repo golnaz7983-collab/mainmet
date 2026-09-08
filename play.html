@@ -8,7 +8,15 @@
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#79c5ef;font-family:Tahoma,Arial,sans-serif;touch-action:none}
-#game{position:fixed;inset:0}
+#game{position:fixed;inset:0;z-index:0}
+.panel{background:linear-gradient(135deg,#2b2b2b,#191919);border:3px solid #111;
+box-shadow:inset 3px 3px #777,inset -3px -3px #080808,0 18px 70px #000;
+image-rendering:pixelated}
+.mcbtn{border:3px solid #151515;border-radius:2px;
+box-shadow:inset 2px 2px #aaa,inset -3px -3px #222,0 2px 0 #000}
+.mcbtn:hover{filter:brightness(1.15)}
+.mcbtn:active{transform:translateY(2px)}
+.slot,.invslot{border-radius:1px;image-rendering:pixelated}
 canvas{display:block;width:100%;height:100%}
 #crosshair{position:fixed;z-index:20;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);pointer-events:none}
 #crosshair:before,#crosshair:after{content:"";position:absolute;background:#fff;box-shadow:0 1px 3px #000}
@@ -53,11 +61,11 @@ canvas{display:block;width:100%;height:100%}
 </head>
 <body>
 <div id="game"></div><div id="crosshair"></div>
-<div id="brand" class="badge">mainmet • WEB GAME HD</div>
+<div id="brand" class="badge">mainmet • WEB GAME 256</div>
 <div id="coords" class="badge">0 / 0 / 0</div>
-<div id="fps" class="badge">HD RENDER</div>
+<div id="fps" class="badge">256×256 TEXTURES</div>
 <button id="pauseBtn">Ⅱ</button>
-<div id="tip">برای شروع روی «شروع بازی» بزن<br>WASD حرکت • Space پرش • موس نگاه • کلیک چپ شکستن • کلیک راست گذاشتن</div>
+<div id="tip">برای شروع روی «شروع بازی» بزن<br>ZQSD حرکت • Space پرش • موس نگاه • کلیک چپ شکستن • کلیک راست گذاشتن</div>
 
 <div id="hotbar">
  <div class="slot sel" data-i="0"><b>1</b><i class="blockicon grass"></i></div>
@@ -67,7 +75,7 @@ canvas{display:block;width:100%;height:100%}
  <div class="slot" data-i="4"><b>5</b><i class="blockicon leaves"></i></div>
  <div class="slot" data-i="5"><b>6</b><i class="blockicon sand"></i></div>
 </div>
-<div id="hand"><div class="sleeve"></div><div class="skin"></div></div>
+
 
 <div id="touch">
  <div id="joy"><div id="knob"></div></div>
@@ -88,10 +96,10 @@ canvas{display:block;width:100%;height:100%}
 
 <div id="start"><div class="panel">
  <h1>mainmet</h1>
- <p>Web Game HD — دنیای بلوکی سه‌بعدی با درخت، ماب، Inventory، فیزیک، نور و سایه.</p><div class="keys"><div class="key"><strong>W A S D</strong>حرکت</div><div class="key"><strong>SHIFT</strong>دویدن</div><div class="key"><strong>SPACE</strong>پرش</div><div class="key"><strong>E</strong>Inventory</div><div class="key"><strong>1–6</strong>بلوک</div><div class="key"><strong>ESC</strong>Pause</div><div class="key"><strong>Left</strong>شکستن</div><div class="key"><strong>Right</strong>گذاشتن</div><div class="key"><strong>R</strong>دنیای جدید</div><div class="key"><strong>W در Pause</strong>خروج</div></div>
+ <p>Web Game 256×256 — دنیای بلوکی سه‌بعدی با درخت، ماب، Inventory، فیزیک، نور و سایه.</p><div class="keys"><div class="key"><strong>Z Q S D</strong>حرکت</div><div class="key"><strong>SHIFT</strong>دویدن</div><div class="key"><strong>SPACE</strong>پرش</div><div class="key"><strong>E</strong>Inventory</div><div class="key"><strong>1–6</strong>بلوک</div><div class="key"><strong>ESC</strong>Pause</div><div class="key"><strong>Left</strong>شکستن</div><div class="key"><strong>Right</strong>گذاشتن</div><div class="key"><strong>R</strong>دنیای جدید</div><div class="key"><strong>W در Pause</strong>خروج</div></div>
  <button class="mcbtn green" id="startBtn">🎮 شروع بازی</button>
  <button class="mcbtn" id="startFull">⛶ تمام صفحه</button>
- <p>PC: WASD • Shift دویدن • Space پرش • Mouse • کلیک چپ/راست • 1-6 • Esc<br>موبایل: جوی‌استیک و دکمه‌های لمسی</p>
+ <p>PC: ZQSD • Shift دویدن • Space پرش • Mouse • کلیک چپ/راست • 1-6 • Esc<br>موبایل: جوی‌استیک و دکمه‌های لمسی</p>
 </div></div>
 
 <div id="rotate"><div><div style="font-size:60px">📱↔️</div><h2>گوشی را افقی کن</h2><p>mainmet برای بازی در حالت افقی طراحی شده است.</p></div></div>
@@ -101,18 +109,36 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.m
 
 /* ---------- renderer / camera ---------- */
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x79c7ef);
-scene.fog=new THREE.Fog(0x79c7ef,45,135);
+scene.background=new THREE.Color(0x82c9f2);
+scene.fog=new THREE.Fog(0x82c9f2,55,160);
 
 const camera=new THREE.PerspectiveCamera(78,innerWidth/innerHeight,.05,220);
 camera.position.set(0,5,8);
+// ---------- first-person blocky arm ----------
+const handRoot=new THREE.Group();
+const sleeveMat=new THREE.MeshLambertMaterial({color:0x2f79a8});
+const skinMat=new THREE.MeshLambertMaterial({color:0xc98e6a});
+const darkSkinMat=new THREE.MeshLambertMaterial({color:0xb87859});
+const armMesh=new THREE.Mesh(new THREE.BoxGeometry(.34,.88,.34),sleeveMat);
+armMesh.position.set(.22,-.22,-.62);
+const palmMesh=new THREE.Mesh(new THREE.BoxGeometry(.44,.46,.32),skinMat);
+palmMesh.position.set(.22,-.70,-.72);
+handRoot.add(armMesh,palmMesh);
+for(let i=0;i<4;i++){
+  const f=new THREE.Mesh(new THREE.BoxGeometry(.09,.27,.10),darkSkinMat);
+  f.position.set(.08+i*.10,-.94,-.79);
+  handRoot.add(f);
+}
+const thumb=new THREE.Mesh(new THREE.BoxGeometry(.11,.28,.11),darkSkinMat);
+thumb.position.set(.00,-.73,-.73);thumb.rotation.z=-.45;handRoot.add(thumb);
+camera.add(handRoot);
 
 const renderer=new THREE.WebGLRenderer({
  antialias:true,
  powerPreference:"high-performance",
  precision:"highp"
 });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2.5));
 renderer.setSize(innerWidth,innerHeight,false);
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.shadowMap.enabled=true;
@@ -130,18 +156,32 @@ scene.add(sun);
 
 /* ---------- crisp pixel textures generated locally ---------- */
 function tex(base,accent,seed=1){
- const c=document.createElement("canvas");c.width=c.height=64;
- const x=c.getContext("2d");
- x.fillStyle=base;x.fillRect(0,0,32,32);
- let s=seed;
- for(let i=0;i<260;i++){
+ const c=document.createElement("canvas");c.width=c.height=256;
+ const x=c.getContext("2d",{alpha:false});
+ x.imageSmoothingEnabled=false;
+ x.fillStyle=base;x.fillRect(0,0,256,256);
+ let s=seed>>>0;
+ for(let i=0;i<2600;i++){
   s=(s*1664525+1013904223)>>>0;
-  const px=s%32,py=(s>>>5)%32,sz=1+(s%3);
-  x.fillStyle=(s&1)?accent:base;x.globalAlpha=.45;
+  const px=s&255,py=(s>>>8)&255,sz=1+(s%4);
+  x.globalAlpha=.18+(s%5)*.08;
+  x.fillStyle=(s&1)?accent:base;
   x.fillRect(px,py,sz,sz);
  }
- x.globalAlpha=1;x.imageSmoothingEnabled=false;
- const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestMipmapNearestFilter;
+ x.globalAlpha=1;
+ for(let i=0;i<420;i++){
+  s=(s*1664525+1013904223)>>>0;
+  const px=s&255,py=(s>>>8)&255;
+  x.fillStyle=(s&2)?"#ffffff":"#000000";
+  x.globalAlpha=.045+(s%4)*.02;
+  x.fillRect(px,py,1+(s%2),1+(s%2));
+ }
+ x.globalAlpha=1;
+ const t=new THREE.CanvasTexture(c);
+ t.colorSpace=THREE.SRGBColorSpace;
+ t.magFilter=THREE.NearestFilter;
+ t.minFilter=THREE.NearestMipmapNearestFilter;
+ t.generateMipmaps=true;
  return t;
 }
 const dirtTex=tex("#795735","#68492e",11);
@@ -203,12 +243,12 @@ for(let x=-30;x<=30;x+=6)for(let z=-30;z<=30;z+=7){
 
 /* ---------- roaming mobs ---------- */
 const mobs=[];const bodyGeo=new THREE.BoxGeometry(.9,.62,1.25),headGeo=new THREE.BoxGeometry(.58,.55,.58),legGeo=new THREE.BoxGeometry(.18,.55,.18);
-function spawnMob(x,z,type){const g=new THREE.Group(),y=hAt(Math.floor(x),Math.floor(z))+1;const bm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xe8e7df:0x6b472c}),hm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xd9d9d4:0x56371f});const b=new THREE.Mesh(bodyGeo,bm);b.position.y=.7;b.castShadow=true;g.add(b);const h=new THREE.Mesh(headGeo,hm);h.position.set(0,1.05,.72);h.castShadow=true;g.add(h);for(const sx of[-.3,.3])for(const sz of[-.42,.42]){const l=new THREE.Mesh(legGeo,new THREE.MeshLambertMaterial({color:0x333333}));l.position.set(sx,.25,sz);l.castShadow=true;g.add(l)}g.position.set(x+.5,y,z+.5);scene.add(g);mobs.push({g,phase:rand(x+7,z+3)*6.28,speed:.25+rand(x+2,z+8)*.3})}
-for(let i=0;i<16;i++){const x=Math.floor(rand(i*13,5)*64-32),z=Math.floor(rand(7,i*17)*64-32);if(Math.hypot(x,z-8)>12)spawnMob(x,z,i%2?'sheep':'cow')}
-function updateMobs(dt){for(const m of mobs){m.phase+=dt*m.speed;const dx=Math.sin(m.phase)*dt*m.speed*.9,dz=Math.cos(m.phase*.71)*dt*m.speed*.9;m.g.position.x+=dx;m.g.position.z+=dz;m.g.position.y=hAt(Math.floor(m.g.position.x),Math.floor(m.g.position.z))+1;m.g.rotation.y=Math.atan2(dx,dz)}}
+function spawnMob(x,z,type){const g=new THREE.Group(),y=heightAt(Math.floor(x),Math.floor(z))+1;const bm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xe8e7df:0x6b472c}),hm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xd9d9d4:0x56371f});const b=new THREE.Mesh(bodyGeo,bm);b.position.y=.7;b.castShadow=true;g.add(b);const h=new THREE.Mesh(headGeo,hm);h.position.set(0,1.05,.72);h.castShadow=true;g.add(h);for(const sx of[-.3,.3])for(const sz of[-.42,.42]){const l=new THREE.Mesh(legGeo,new THREE.MeshLambertMaterial({color:0x333333}));l.position.set(sx,.25,sz);l.castShadow=true;g.add(l)}g.position.set(x+.5,y,z+.5);scene.add(g);mobs.push({g,phase:rnd(x+7,z+3)*6.28,speed:.25+rnd(x+2,z+8)*.3})}
+for(let i=0;i<16;i++){const x=Math.floor(rnd(i*13,5)*64-32),z=Math.floor(rnd(7,i*17)*64-32);if(Math.hypot(x,z-8)>12)spawnMob(x,z,i%2?'sheep':'cow')}
+function updateMobs(dt){for(const m of mobs){m.phase+=dt*m.speed;const dx=Math.sin(m.phase)*dt*m.speed*.9,dz=Math.cos(m.phase*.71)*dt*m.speed*.9;m.g.position.x+=dx;m.g.position.z+=dz;m.g.position.y=heightAt(Math.floor(m.g.position.x),Math.floor(m.g.position.z))+1;m.g.rotation.y=Math.atan2(dx,dz)}}
 
 /* ---------- player physics: position is feet, camera is eye ---------- */
-const player={feet:new THREE.Vector3(.5,hAt(0,8)+1.02,8.5),vel:new THREE.Vector3(),radius:.30,height:1.80,eye:1.62,onGround:false};
+const player={feet:new THREE.Vector3(.5,heightAt(0,8)+1.02,8.5),vel:new THREE.Vector3(),radius:.30,height:1.80,eye:1.62,onGround:false};
 const spawnH=heightAt(0,8)+1;
 player.feet.set(.5,spawnH+.02,8.5);
 camera.position.set(player.feet.x,player.feet.y+player.eye,player.feet.z);
@@ -232,7 +272,7 @@ const keys={};
 let yaw=0,pitch=0,selected=0,started=false,paused=false;
 
 function physics(dt){
- let f=(keys.KeyW?1:0)-(keys.KeyS?1:0),s=(keys.KeyD?1:0)-(keys.KeyA?1:0);
+ let f=(keys.KeyZ?1:0)-(keys.KeyS?1:0),s=(keys.KeyD?1:0)-(keys.KeyQ?1:0);
  const len=Math.hypot(f,s)||1;f/=len;s/=len;
  const speed=(keys.ShiftLeft||keys.ShiftRight)?7.5:4.9;
  const fw=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
@@ -268,7 +308,10 @@ document.addEventListener("mousemove",e=>{
 });
 const ray=new THREE.Raycaster(),center=new THREE.Vector2(0,0);
 function hit(){ray.setFromCamera(center,camera);return ray.intersectObjects([...blocks.values()],false).find(h=>h.distance<7)||null}
-function swing(){document.getElementById("hand").animate([{transform:"rotate(-7deg) translateY(0)"},{transform:"rotate(-16deg) translateY(15px)"},{transform:"rotate(-7deg) translateY(0)"}],{duration:140})}
+function swing(){
+  handRoot.position.y=-.10;handRoot.rotation.x=-.16;
+  setTimeout(()=>{handRoot.position.y=0;handRoot.rotation.x=0},110);
+}
 function breakBlock(){const h=hit();if(!h)return;const p=h.object.userData;removeBlock(p.x,p.y,p.z);swing()}
 function placeBlock(){const h=hit();if(!h)return;const n=h.face.normal,p=h.object.userData;
  const x=p.x+Math.round(n.x),y=p.y+Math.round(n.y),z=p.z+Math.round(n.z);
@@ -304,9 +347,9 @@ joy.addEventListener("touchmove",e=>{
  const t=[...e.touches].find(v=>v.identifier===jid);if(!t)return;
  const dx=Math.max(-52,Math.min(52,t.clientX-jx)),dy=Math.max(-52,Math.min(52,t.clientY-jy));
  knob.style.transform=`translate(${dx}px,${dy}px)`;
- keys.KeyW=dy<-12;keys.KeyS=dy>12;keys.KeyA=dx<-12;keys.KeyD=dx>12;
+ keys.KeyZ=dy<-12;keys.KeyS=dy>12;keys.KeyQ=dx<-12;keys.KeyD=dx>12;
 },{passive:true});
-joy.addEventListener("touchend",()=>{jid=null;knob.style.transform="";keys.KeyW=keys.KeyS=keys.KeyA=keys.KeyD=false},{passive:true});
+joy.addEventListener("touchend",()=>{jid=null;knob.style.transform="";keys.KeyZ=keys.KeyS=keys.KeyQ=keys.KeyD=false},{passive:true});
 
 function resize(){
  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight,false);
