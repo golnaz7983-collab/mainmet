@@ -1,0 +1,9 @@
+{
+  "name": "armacraft-wss-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WebSocket to TCP bridge for ArMaCraft testing on Render",
+  "main": "server.js",
+  "scripts": {"start": "node server.js"},
+  "dependencies": {"ws": "^8.18.3"}
+}
