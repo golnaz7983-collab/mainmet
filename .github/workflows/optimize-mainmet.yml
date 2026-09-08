@@ -1,0 +1,105 @@
+name: Optimize mainmet terrain
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/optimize-mainmet.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Optimize play.html
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p=Path('play.html')
+          s=p.read_text(encoding='utf-8')
+
+          # Replace thousands of separate block meshes with six instanced meshes.
+          a=s.index('const geo=new THREE.BoxGeometry(1,1,1);')
+          b=s.index('/* ---------- world with safe spawn ---------- */')
+          block='''const geo=new THREE.BoxGeometry(1,1,1);
+          // Performance: one GPU instanced mesh per block type.
+          const BLOCK_TYPES=["grass","dirt","stone","wood","leaves","sand"];
+          const MAX_INSTANCES=12000;
+          const blockMeshes={},blockLists={},blocks=new Map();
+          const key=(x,y,z)=>`${x},${y},${z}`;
+          const dummy=new THREE.Object3D();
+          for(const type of BLOCK_TYPES){
+           const im=new THREE.InstancedMesh(geo,materials[type],MAX_INSTANCES);
+           im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);im.count=0;im.frustumCulled=true;
+           im.castShadow=false;im.receiveShadow=false;im.__blockType=type;
+           scene.add(im);blockMeshes[type]=im;blockLists[type]=[];
+          }
+          function addBlock(x,y,z,type="grass"){
+           const k=key(x,y,z);if(blocks.has(k))return;
+           const list=blockLists[type],im=blockMeshes[type];if(list.length>=MAX_INSTANCES)return;
+           const index=list.length,entry={x,y,z,key:k,index};list.push(entry);
+           dummy.position.set(x+.5,y+.5,z+.5);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();
+           im.setMatrixAt(index,dummy.matrix);im.count=list.length;im.instanceMatrix.needsUpdate=true;blocks.set(k,{x,y,z,type,index});
+          }
+          function removeBlock(x,y,z){
+           const k=key(x,y,z),b=blocks.get(k);if(!b)return;
+           const list=blockLists[b.type],im=blockMeshes[b.type],last=list.length-1;
+           if(b.index!==last){const moved=list[last];list[b.index]=moved;moved.index=b.index;
+            dummy.position.set(moved.x+.5,moved.y+.5,moved.z+.5);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();im.setMatrixAt(b.index,dummy.matrix);
+            const mb=blocks.get(moved.key);if(mb)mb.index=b.index;}
+           list.pop();im.count=list.length;im.instanceMatrix.needsUpdate=true;blocks.delete(k);
+          }
+
+          '''
+          s=s[:a]+block+s[b:]
+
+          # Smooth, readable terrain and deliberately separated tree locations.
+          old_start=s.index('for(let x=-34;x<34;x++)for(let z=-34;z<34;z++){')
+          old_end=s.index('\n\n/* ---------- roaming mobs ---------- */',old_start)
+          world='''for(let x=-30;x<=30;x++)for(let z=-30;z<=30;z++){
+           const h=Math.max(2,heightAt(x,z));heights.set(key(x,0,z),h);
+           for(let y=0;y<=h;y++)addBlock(x,y,z,y===h?"grass":y>=h-2?"dirt":"stone");
+          }
+          // Trees keep a minimum 7-block horizontal distance and never crowd spawn.
+          const treeSpots=[];
+          for(let x=-27;x<=27;x+=5)for(let z=-27;z<=27;z+=5){
+           if(Math.hypot(x,z-8)<11)continue;
+           if(rnd(x+4,z+8)>.72){
+            let ok=true;for(const t of treeSpots)if(Math.hypot(x-t.x,z-t.z)<7){ok=false;break;}if(!ok)continue;
+            treeSpots.push({x,z});const h=heightAt(x,z)+1;
+            for(let i=0;i<4;i++)addBlock(x,h+i,z,"wood");
+            for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=1;dy<=3;dy++)if(Math.abs(dx)+Math.abs(dz)<4)addBlock(x+dx,h+dy,z+dz,"leaves");
+           }
+          }'''
+          s=s[:old_start]+world+s[old_end:]
+
+          # InstancedMesh ray picking.
+          hs='''function hit(){
+           ray.setFromCamera(center,camera);
+           const hits=ray.intersectObjects(BLOCK_TYPES.map(t=>blockMeshes[t]),false);
+           const h=hits.find(v=>v.distance<7);if(!h)return null;
+           const type=h.object.__blockType,b=blockLists[type][h.instanceId];if(!b)return null;
+           return {object:{userData:b},face:h.face,distance:h.distance};
+          }'''
+          s=re.sub(r'function hit\(\)\{.*?\n\}',hs,s,count=1,flags=re.S)
+
+          # Disable expensive per-block shadows; keep the sun and world lighting.
+          s=s.replace('renderer.shadowMap.type=THREE.PCFSoftShadowMap;','renderer.shadowMap.type=THREE.BasicShadowMap;')
+          s=s.replace('renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2.5));','renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));')
+          s=s.replace('b.castShadow=true;g.add(b);','b.castShadow=false;g.add(b);').replace('h.castShadow=true;g.add(h);','h.castShadow=false;g.add(h);').replace('l.castShadow=true;g.add(l);','l.castShadow=false;g.add(l);')
+          s=s.replace('document.getElementById("coords").textContent=`${Math.floor(player.feet.x)} / ${Math.floor(player.feet.y)} / ${Math.floor(player.feet.z)}`;','if(fc%6===0)document.getElementById("coords").textContent=`${Math.floor(player.feet.x)} / ${Math.floor(player.feet.y)} / ${Math.floor(player.feet.z)}`;')
+          p.write_text(s,encoding='utf-8')
+
+      - name: Commit optimized game
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add play.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Optimize block rendering and tree spawning'
+          git push
