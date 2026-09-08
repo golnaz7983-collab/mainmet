@@ -1,1 +1,260 @@
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>mainmet • بازی</title><style>html,body{margin:0;width:100%;height:100%;background:#080908;color:#fff;font-family:Tahoma,Arial,sans-serif;overflow:hidden}.top{height:52px;background:#111511;border-bottom:1px solid #444;display:flex;align-items:center;justify-content:space-between;padding:0 14px;box-sizing:border-box}.top b{font-size:18px}.top span{color:#aaa;font-size:11px}.game{width:100%;height:calc(100vh - 52px);border:0;display:block;background:#000}.back{position:fixed;left:10px;top:10px;z-index:5;background:#333;color:#fff;border:1px solid #777;border-radius:4px;padding:7px 10px;cursor:pointer;font-weight:700}</style></head><body><div class="top"><b>⛏ mainmet</b><span>بازی Minecraft در مرورگر</span></div><button class="back" onclick="location.href='index.html'">← بازگشت</button><iframe class="game" src="https://eaglercraft.com/play" title="mainmet Minecraft browser game" allow="fullscreen; gamepad; autoplay" allowfullscreen></iframe></body></html>
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>mainmet • بازی</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#87c9ef;font-family:Tahoma,Arial,sans-serif}
+#game{position:fixed;inset:0}
+#crosshair{position:fixed;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);z-index:10;pointer-events:none}
+#crosshair:before,#crosshair:after{content:"";position:absolute;background:#fff;box-shadow:0 1px 2px #000}
+#crosshair:before{width:18px;height:2px;top:8px;left:0}
+#crosshair:after{height:18px;width:2px;left:8px;top:0}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:20}
+#top{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;direction:ltr}
+.badge{background:#101010cc;border:2px solid #444;color:#fff;padding:7px 10px;border-radius:4px;text-shadow:2px 2px #000;font-size:12px;direction:rtl}
+#hotbar{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:3px;background:#111c;padding:5px;border:2px solid #555;border-radius:5px;direction:ltr;pointer-events:auto}
+.slot{width:52px;height:52px;background:#777;border:2px solid #222;box-shadow:inset 2px 2px #aaa,inset -2px -2px #333;position:relative;cursor:pointer}
+.slot.sel{border-color:#fff;box-shadow:inset 2px 2px #fff,inset -2px -2px #333,0 0 0 2px #222}
+.slot b{position:absolute;left:4px;top:2px;color:#fff;text-shadow:2px 2px #000;font-size:12px}
+.blockicon{position:absolute;inset:11px;border:1px solid #222;box-shadow:inset 3px 3px #fff2,inset -3px -3px #0005}
+.grass{background:linear-gradient(#65a94b 0 30%,#7c5a37 30%)} .dirt{background:#795b3b}
+.stone{background:#777}.wood{background:linear-gradient(90deg,#6b492c 0 45%,#9a6a3d 45% 55%,#6b492c 55%)}
+.leaves{background:#3e7d3a}.sand{background:#c9b56e}.glass{background:#aee4ff88}
+#tip{position:absolute;left:50%;top:54%;transform:translateX(-50%);color:#fff;text-shadow:2px 2px #000;background:#111a;padding:7px 12px;border-radius:4px;font-size:12px;transition:.3s}
+#tip.hide{opacity:0}
+#start{position:fixed;inset:0;z-index:40;background:linear-gradient(#0008,#000b),radial-gradient(circle,#456 0,#111 65%);display:flex;align-items:center;justify-content:center;padding:20px}
+.menu{width:min(520px,94vw);background:#171917;border:3px solid #555;box-shadow:0 15px 60px #000;padding:24px;text-align:center;color:#fff}
+.menu h1{font-size:42px;margin:0 0 5px;text-shadow:4px 4px #000}
+.menu p{color:#ccc;line-height:1.8;font-size:13px}
+.mcbutton{width:100%;margin:6px 0;padding:14px;background:linear-gradient(#6f6f6f,#444);color:#fff;border:2px solid #222;border-radius:4px;font-weight:900;text-shadow:2px 2px #222;cursor:pointer}
+.mcbutton.green{background:linear-gradient(#6b9b4d,#456b31)}
+#touch{display:none;position:fixed;inset:0;z-index:25;pointer-events:none}
+.touchbtn{position:absolute;pointer-events:auto;border:2px solid #ddd8;background:#222b;color:#fff;border-radius:7px;width:58px;height:58px;font-size:22px}
+#joy{left:18px;bottom:95px;width:132px;height:132px;border-radius:50%;border:2px solid #fff6;background:#2225;pointer-events:auto;position:absolute}
+#knob{position:absolute;width:54px;height:54px;border-radius:50%;background:#aaa9;left:39px;top:39px}
+#jump{right:18px;bottom:160px}.break{right:88px;bottom:92px}.place{right:18px;bottom:92px}.pause{right:18px;top:70px;width:46px;height:42px}
+@media(pointer:coarse){#touch{display:block}}
+@media(max-width:700px){.slot{width:38px;height:38px}.blockicon{inset:8px}.slot b{font-size:9px}.menu h1{font-size:32px}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="crosshair"></div>
+<div id="hud">
+  <div id="top"><div class="badge">mainmet • Web Game</div><div class="badge" id="coords">0 / 0 / 0</div></div>
+  <div id="tip">برای شروع روی «شروع بازی» بزن؛ موس را حرکت بده و با W A S D حرکت کن.</div>
+  <div id="hotbar">
+    <div class="slot sel" data-i="0"><b>1</b><i class="blockicon grass"></i></div>
+    <div class="slot" data-i="1"><b>2</b><i class="blockicon dirt"></i></div>
+    <div class="slot" data-i="2"><b>3</b><i class="blockicon stone"></i></div>
+    <div class="slot" data-i="3"><b>4</b><i class="blockicon wood"></i></div>
+    <div class="slot" data-i="4"><b>5</b><i class="blockicon leaves"></i></div>
+    <div class="slot" data-i="5"><b>6</b><i class="blockicon sand"></i></div>
+  </div>
+</div>
+
+<div id="touch">
+  <div id="joy"><div id="knob"></div></div>
+  <button class="touchbtn" id="jump">↑</button>
+  <button class="touchbtn break" id="break">⛏</button>
+  <button class="touchbtn place" id="place">▣</button>
+  <button class="touchbtn pause" id="pause">Ⅱ</button>
+</div>
+
+<div id="start">
+  <div class="menu">
+    <h1>mainmet</h1>
+    <p>یک بازی وب سه‌بعدی سبک Minecraft با نمای اول‌شخص، دنیای بلوکی، شکستن و گذاشتن بلوک و دست اول‌شخص.</p>
+    <button class="mcbutton green" id="startBtn">🎮 شروع بازی</button>
+    <button class="mcbutton" id="fullBtn">⛶ تمام صفحه</button>
+    <p>W A S D حرکت • Space پرش • موس نگاه کردن • کلیک چپ شکستن • کلیک راست گذاشتن • 1 تا 6 انتخاب بلوک • Esc آزاد کردن موس</p>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87c9ef);
+scene.fog = new THREE.Fog(0x87c9ef, 35, 100);
+
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, .05, 160);
+camera.position.set(0, 3.2, 8);
+
+const renderer = new THREE.WebGLRenderer({antialias:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.getElementById('game').appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xbfe8ff,0x59633f,1.7));
+const sun = new THREE.DirectionalLight(0xffffff,1.4);
+sun.position.set(-30,60,20); scene.add(sun);
+
+const cubeGeo = new THREE.BoxGeometry(1,1,1);
+const materials = {
+  grass:new THREE.MeshLambertMaterial({color:0x69a94b}),
+  dirt:new THREE.MeshLambertMaterial({color:0x765334}),
+  stone:new THREE.MeshLambertMaterial({color:0x777777}),
+  wood:new THREE.MeshLambertMaterial({color:0x8a5a32}),
+  leaves:new THREE.MeshLambertMaterial({color:0x3d7e3a,transparent:true,opacity:.92}),
+  sand:new THREE.MeshLambertMaterial({color:0xc8b36c})
+};
+const typeList=['grass','dirt','stone','wood','leaves','sand'];
+const blocks = new Map();
+const key=(x,y,z)=>`${x},${y},${z}`;
+
+function addBlock(x,y,z,type='grass'){
+  if(blocks.has(key(x,y,z))) return;
+  const m=new THREE.Mesh(cubeGeo,materials[type]||materials.grass);
+  m.position.set(x+.5,y+.5,z+.5);
+  m.userData={x,y,z,type};
+  scene.add(m); blocks.set(key(x,y,z),m);
+}
+function removeBlock(x,y,z){
+  const m=blocks.get(key(x,y,z)); if(!m)return;
+  scene.remove(m); blocks.delete(key(x,y,z));
+}
+
+let seed=7;
+function noise(x,z){
+  let n=Math.sin(x*12.9898+z*78.233+seed)*43758.5453;
+  return n-Math.floor(n);
+}
+for(let x=-24;x<24;x++){
+  for(let z=-24;z<24;z++){
+    const h=2+Math.floor(noise(x,z)*3 + Math.sin(x*.35)*.7 + Math.cos(z*.27)*.6);
+    for(let y=0;y<=h;y++) addBlock(x,y,z,y===h?'grass':(y>h-2?'dirt':'stone'));
+  }
+}
+// trees
+for(let x=-20;x<21;x+=5){
+  for(let z=-20;z<21;z+=7){
+    if(noise(x+3,z+4)>.54){
+      const y=4;
+      addBlock(x,y,z,'wood');addBlock(x,y+1,z,'wood');addBlock(x,y+2,z,'wood');
+      for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=1;dy<=2;dy++)
+        if(Math.abs(dx)+Math.abs(dz)<4)addBlock(x+dx,y+dy,z+dz,'leaves');
+    }
+  }
+}
+
+// Steve-like first-person blocky arm/hand, stylized original
+const armGroup=new THREE.Group();
+const skin=new THREE.MeshLambertMaterial({color:0xc98f6b});
+const shirt=new THREE.MeshLambertMaterial({color:0x2d79a8});
+const arm=new THREE.Mesh(new THREE.BoxGeometry(.28,.78,.28),shirt);
+arm.position.set(.42,-.48,-.72); arm.rotation.z=-.12;
+const hand=new THREE.Mesh(new THREE.BoxGeometry(.31,.33,.31),skin);
+hand.position.set(.42,-.88,-.72);
+armGroup.add(arm,hand); camera.add(armGroup); scene.add(camera);
+
+const keys={};
+let vy=0, grounded=false, yaw=0,pitch=0,selected=0,started=false;
+addEventListener('keydown',e=>{keys[e.code]=true;if(/^Digit[1-6]$/.test(e.code)){selected=+e.code.slice(-1)-1;updateHotbar()}});
+addEventListener('keyup',e=>keys[e.code]=false);
+
+function updateHotbar(){
+  document.querySelectorAll('.slot').forEach((s,i)=>s.classList.toggle('sel',i===selected));
+}
+document.querySelectorAll('.slot').forEach(s=>s.onclick=()=>{selected=+s.dataset.i;updateHotbar()});
+
+function lock(){
+  if(started && document.pointerLockElement!==renderer.domElement) renderer.domElement.requestPointerLock?.();
+}
+renderer.domElement.addEventListener('click',lock);
+document.addEventListener('mousemove',e=>{
+  if(document.pointerLockElement!==renderer.domElement)return;
+  yaw-=e.movementX*.0022; pitch-=e.movementY*.0022;
+  pitch=Math.max(-1.45,Math.min(1.45,pitch));
+});
+document.addEventListener('pointerlockchange',()=>{
+  if(document.pointerLockElement!==renderer.domElement && started){
+    document.getElementById('tip').classList.remove('hide');
+  }
+});
+
+function move(dt){
+  const speed=(keys.ShiftLeft||keys.ShiftRight)?7:4.4;
+  let f=(keys.KeyW?1:0)-(keys.KeyS?1:0), s=(keys.KeyD?1:0)-(keys.KeyA?1:0);
+  const len=Math.hypot(f,s)||1; f/=len;s/=len;
+  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+  const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+  camera.position.addScaledVector(forward,f*speed*dt);
+  camera.position.addScaledVector(right,s*speed*dt);
+  if((keys.Space||keys.KeyJ)&&grounded){vy=6.4;grounded=false}
+  vy-=16*dt; camera.position.y+=vy*dt;
+  const floor=2.75;
+  if(camera.position.y<floor){camera.position.y=floor;vy=0;grounded=true}
+}
+function updateCamera(){camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch}
+const ray=new THREE.Raycaster();
+const center=new THREE.Vector2(0,0);
+
+function targetBlock(){
+  ray.setFromCamera(center,camera);
+  const hits=ray.intersectObjects([...blocks.values()],false);
+  return hits.find(h=>h.distance<7)||null;
+}
+function breakTarget(){
+  const h=targetBlock(); if(!h)return;
+  const p=h.object.userData; removeBlock(p.x,p.y,p.z); swing();
+}
+function placeTarget(){
+  const h=targetBlock(); if(!h)return;
+  const n=h.face.normal, p=h.object.userData;
+  const x=p.x+Math.round(n.x), y=p.y+Math.round(n.y), z=p.z+Math.round(n.z);
+  if(y<0||y>20)return;
+  if(Math.abs(x-camera.position.x)<.7 && Math.abs(z-camera.position.z)<.7 && y<camera.position.y+.8)return;
+  addBlock(x,y,z,typeList[selected]); swing();
+}
+function swing(){
+  arm.rotation.x=-.35; setTimeout(()=>arm.rotation.x=0,120);
+}
+renderer.domElement.addEventListener('mousedown',e=>{
+  if(!started)return;
+  if(e.button===0)breakTarget();
+  if(e.button===2)placeTarget();
+});
+renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
+
+document.getElementById('startBtn').onclick=()=>{
+  started=true; document.getElementById('start').style.display='none';
+  renderer.domElement.requestPointerLock?.(); document.getElementById('tip').classList.add('hide');
+};
+document.getElementById('fullBtn').onclick=()=>{
+  document.documentElement.requestFullscreen?.(); 
+};
+document.getElementById('pause').onclick=()=>document.exitPointerLock?.();
+document.getElementById('jump').onclick=()=>{if(grounded){vy=6.4;grounded=false}};
+document.getElementById('break').onclick=breakTarget;
+document.getElementById('place').onclick=placeTarget;
+
+// simple touch joystick
+const joy=document.getElementById('joy'),knob=document.getElementById('knob');
+let touchId=null,tx=0,ty=0;
+joy.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchId=t.identifier;tx=t.clientX;ty=t.clientY;},{passive:true});
+joy.addEventListener('touchmove',e=>{
+  const t=[...e.touches].find(x=>x.identifier===touchId); if(!t)return;
+  const dx=Math.max(-45,Math.min(45,t.clientX-tx)),dy=Math.max(-45,Math.min(45,t.clientY-ty));
+  knob.style.transform=`translate(${dx}px,${dy}px)`;
+  keys.KeyW=dy<-10;keys.KeyS=dy>10;keys.KeyA=dx<-10;keys.KeyD=dx>10;
+},{passive:true});
+joy.addEventListener('touchend',()=>{touchId=null;knob.style.transform='';keys.KeyW=keys.KeyS=keys.KeyA=keys.KeyD=false},{passive:true});
+
+let last=performance.now();
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(started){move(dt);updateCamera();}
+  document.getElementById('coords').textContent=`${Math.floor(camera.position.x)} / ${Math.floor(camera.position.y)} / ${Math.floor(camera.position.z)}`;
+  renderer.render(scene,camera);
+}
+loop(last);
+
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body>
+</html>

@@ -36,10 +36,10 @@ footer{text-align:center;color:#777;padding:30px 10px;font-size:11px}.footlinks{
 </div>
 
 <section id="play" class="panel"><div class="panel-head"><h2>🎮 بازی در مرورگر</h2><button class="smallbtn" onclick="refreshAll()">↻ بروزرسانی</button></div>
-<div class="notice"><b>بازی واقعی داخل همین صفحه:</b> این بخش یک کلاینت واقعیِ Minecraft مرورگری را اجرا می‌کند. نسخه‌های رسمی مرورگری فعلی بیشتر روی 1.8.8 و 1.12.2 هستند؛ <b>Minecraft Java 26.2 رسمیِ مرورگری وجود ندارد</b>. برای اتصال به سرور باید آن سرور Eagler/WSS را پشتیبانی کند.</div>
+<div class="notice"><b>بازی واقعی داخل همین صفحه:</b> این بخش بازی سه‌بعدی وبِ mainmet را مستقیماً داخل همین سایت اجرا می‌کند؛ نمای اول‌شخص، حرکت، پرش، شکستن و گذاشتن بلوک و دست اول‌شخص دارد. این یک کلاینت رسمی Minecraft Java 26.2 نیست.</div>
 <div class="game-wrap" style="margin-top:14px">
 <div class="gamebar"><div class="game-note">🖥️ با Chrome/Edge بازی کن. بعد از بارگذاری، از Multiplayer سرور سازگار را انتخاب کن.</div><div class="actions"><button class="smallbtn green" onclick="openBrowserGame()">⛶ تمام صفحه</button><button class="smallbtn blue" onclick="openExternalGame()">↗ باز کردن بازی</button></div></div>
-<iframe id="gameFrame" class="game-frame" src="https://eaglercraft.com/play" title="mainmet browser game" allow="fullscreen; gamepad; autoplay" allowfullscreen></iframe>
+<iframe id="gameFrame" class="game-frame" src="play.html" title="mainmet browser game" allow="fullscreen; gamepad; autoplay" allowfullscreen></iframe>
 </div>
 <div class="big-action"><button class="hero-play" onclick="openPanel('iran')">🇮🇷 انتخاب سرور</button><button class="smallbtn blue" onclick="showJoinHelp()">راهنمای اتصال</button></div>
 <br><div id="playList" class="list"></div></section>
@@ -86,8 +86,8 @@ function normalizeIp(x){return x.trim().replace(/^https?:\/\//,'').replace(/\/$/
 function copyText(x){if(!x||x.includes('در انتظار'))return;navigator.clipboard?.writeText(x).then(()=>toast('IP کپی شد ✅')).catch(()=>toast('کپی خودکار مرورگر در دسترس نیست؛ IP را دستی کپی کن.'))}
 function joinServer(ip){currentIp=ip;copyText(ip);document.getElementById('modalIp').textContent=ip;document.getElementById('modal').classList.add('show')}
 function copyCurrentIp(){copyText(currentIp)} function closeModal(){document.getElementById('modal').classList.remove('show')}
-function openExternalGame(){window.open('https://eaglercraft.com/play','_blank','noopener');}
-function openBrowserGame(){const f=document.getElementById('gameFrame');if(!f)return;if(f.requestFullscreen)f.requestFullscreen().catch(()=>window.open('https://eaglercraft.com/play','_blank'));else window.open('https://eaglercraft.com/play','_blank');}
+function openExternalGame(){window.open('play.html','_blank','noopener');}
+function openBrowserGame(){const f=document.getElementById('gameFrame');if(!f)return;if(f.requestFullscreen)f.requestFullscreen().catch(()=>window.open('play.html','_blank'));else window.open('play.html','_blank');}
 function showJoinHelp(){openPanel('help')}
 async function serverStatus(ip){try{const r=await fetch('https://api.mcsrvstat.us/3/'+encodeURIComponent(ip),{cache:'no-store'});if(!r.ok)throw 0;const d=await r.json();return {online:!!d.online,players:d.players?.online??0,max:d.players?.max??0,version:d.version||'نامشخص',motd:Array.isArray(d.motd?.clean)?d.motd.clean.join(' '):(d.motd?.clean||'')}}catch{return {online:null,players:0,max:0,version:'نامشخص',motd:''}}}
 async function renderIran(){const q=(document.getElementById('q')?.value||'').toLowerCase().trim();const arr=iranServers.filter(s=>(s.name+' '+s.ip+' '+s.desc+' '+s.tags.join(' ')).toLowerCase().includes(q));const html=arr.map((s,i)=>`<div class="card server" id="srv-${i}"><div class="server-main"><div class="server-name">${esc(s.name)}</div><div class="ip">${esc(s.ip)}</div><div class="muted">${esc(s.desc)}</div><div>${s.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div id="stat-${i}" class="checking">⏳ در حال بررسی وضعیت...</div></div><div class="actions"><button class="smallbtn green" onclick="joinServer('${esc(s.ip)}')">🎮 ورود به بازی</button><button class="smallbtn blue" onclick="copyText('${esc(s.ip)}')">📋 کپی IP</button></div></div>`).join('');document.getElementById('iranList').innerHTML=html||'<div class="empty">سروری پیدا نشد.</div>';document.getElementById('playList').innerHTML=html||'<div class="empty">سروری پیدا نشد.</div>';arr.forEach((s,i)=>updateStatus(s.ip,'stat-'+i))}
