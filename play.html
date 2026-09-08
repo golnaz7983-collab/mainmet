@@ -138,11 +138,11 @@ const renderer=new THREE.WebGLRenderer({
  powerPreference:"high-performance",
  precision:"highp"
 });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2.5));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));
 renderer.setSize(innerWidth,innerHeight,false);
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.shadowMap.type=THREE.BasicShadowMap;
 document.getElementById("game").appendChild(renderer.domElement);
 
 scene.add(new THREE.HemisphereLight(0xd9f3ff,0x4f5d3b,1.8));
@@ -203,20 +203,32 @@ const sandMat=new THREE.MeshLambertMaterial({map:sandTex});
 const grassM=[sideMat,sideMat,topMat,dirtMat,sideMat,sideMat];
 const materials={grass:grassM,dirt:dirtMat,stone:stoneMat,wood:woodMat,leaves:leavesMat,sand:sandMat};
 const geo=new THREE.BoxGeometry(1,1,1);
-const blocks=new Map();
+// Performance: one GPU instanced mesh per block type.
+const BLOCK_TYPES=["grass","dirt","stone","wood","leaves","sand"];
+const MAX_INSTANCES=12000;
+const blockMeshes={},blockLists={},blocks=new Map();
 const key=(x,y,z)=>`${x},${y},${z}`;
-
+const dummy=new THREE.Object3D();
+for(const type of BLOCK_TYPES){
+ const im=new THREE.InstancedMesh(geo,materials[type],MAX_INSTANCES);
+ im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);im.count=0;im.frustumCulled=true;
+ im.castShadow=false;im.receiveShadow=false;im.__blockType=type;
+ scene.add(im);blockMeshes[type]=im;blockLists[type]=[];
+}
 function addBlock(x,y,z,type="grass"){
- if(blocks.has(key(x,y,z)))return;
- const m=new THREE.Mesh(geo,materials[type]);
- m.position.set(x+.5,y+.5,z+.5);
- m.castShadow=true;m.receiveShadow=true;
- m.userData={x,y,z,type};
- scene.add(m);blocks.set(key(x,y,z),m);
+ const k=key(x,y,z);if(blocks.has(k))return;
+ const list=blockLists[type],im=blockMeshes[type];if(list.length>=MAX_INSTANCES)return;
+ const index=list.length,entry={x,y,z,key:k,index};list.push(entry);
+ dummy.position.set(x+.5,y+.5,z+.5);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();
+ im.setMatrixAt(index,dummy.matrix);im.count=list.length;im.instanceMatrix.needsUpdate=true;blocks.set(k,{x,y,z,type,index});
 }
 function removeBlock(x,y,z){
- const m=blocks.get(key(x,y,z));if(!m)return;
- scene.remove(m);blocks.delete(key(x,y,z));
+ const k=key(x,y,z),b=blocks.get(k);if(!b)return;
+ const list=blockLists[b.type],im=blockMeshes[b.type],last=list.length-1;
+ if(b.index!==last){const moved=list[last];list[b.index]=moved;moved.index=b.index;
+  dummy.position.set(moved.x+.5,moved.y+.5,moved.z+.5);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();im.setMatrixAt(b.index,dummy.matrix);
+  const mb=blocks.get(moved.key);if(mb)mb.index=b.index;}
+ list.pop();im.count=list.length;im.instanceMatrix.needsUpdate=true;blocks.delete(k);
 }
 
 /* ---------- world with safe spawn ---------- */
@@ -226,24 +238,25 @@ function heightAt(x,z){
  const n=rnd(x,z);
  return 3+Math.floor(n*2+Math.sin(x*.22)*.6+Math.cos(z*.19)*.55);
 }
-for(let x=-34;x<34;x++)for(let z=-34;z<34;z++){
+for(let x=-30;x<=30;x++)for(let z=-30;z<=30;z++){
  const h=Math.max(2,heightAt(x,z));heights.set(key(x,0,z),h);
  for(let y=0;y<=h;y++)addBlock(x,y,z,y===h?"grass":y>=h-2?"dirt":"stone");
 }
-// trees away from spawn
-for(let x=-30;x<=30;x+=6)for(let z=-30;z<=30;z+=7){
- if(Math.hypot(x,z-8)<9)continue;
- if(rnd(x+4,z+8)>.61){
-  const h=heightAt(x,z)+1;
+// Trees keep a minimum 7-block horizontal distance and never crowd spawn.
+const treeSpots=[];
+for(let x=-27;x<=27;x+=5)for(let z=-27;z<=27;z+=5){
+ if(Math.hypot(x,z-8)<11)continue;
+ if(rnd(x+4,z+8)>.72){
+  let ok=true;for(const t of treeSpots)if(Math.hypot(x-t.x,z-t.z)<7){ok=false;break;}if(!ok)continue;
+  treeSpots.push({x,z});const h=heightAt(x,z)+1;
   for(let i=0;i<4;i++)addBlock(x,h+i,z,"wood");
-  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=1;dy<=3;dy++)
-   if(Math.abs(dx)+Math.abs(dz)<4)addBlock(x+dx,h+dy,z+dz,"leaves");
+  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=1;dy<=3;dy++)if(Math.abs(dx)+Math.abs(dz)<4)addBlock(x+dx,h+dy,z+dz,"leaves");
  }
 }
 
 /* ---------- roaming mobs ---------- */
 const mobs=[];const bodyGeo=new THREE.BoxGeometry(.9,.62,1.25),headGeo=new THREE.BoxGeometry(.58,.55,.58),legGeo=new THREE.BoxGeometry(.18,.55,.18);
-function spawnMob(x,z,type){const g=new THREE.Group(),y=heightAt(Math.floor(x),Math.floor(z))+1;const bm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xe8e7df:0x6b472c}),hm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xd9d9d4:0x56371f});const b=new THREE.Mesh(bodyGeo,bm);b.position.y=.7;b.castShadow=true;g.add(b);const h=new THREE.Mesh(headGeo,hm);h.position.set(0,1.05,.72);h.castShadow=true;g.add(h);for(const sx of[-.3,.3])for(const sz of[-.42,.42]){const l=new THREE.Mesh(legGeo,new THREE.MeshLambertMaterial({color:0x333333}));l.position.set(sx,.25,sz);l.castShadow=true;g.add(l)}g.position.set(x+.5,y,z+.5);scene.add(g);mobs.push({g,phase:rnd(x+7,z+3)*6.28,speed:.25+rnd(x+2,z+8)*.3})}
+function spawnMob(x,z,type){const g=new THREE.Group(),y=heightAt(Math.floor(x),Math.floor(z))+1;const bm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xe8e7df:0x6b472c}),hm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xd9d9d4:0x56371f});const b=new THREE.Mesh(bodyGeo,bm);b.position.y=.7;b.castShadow=false;g.add(b);const h=new THREE.Mesh(headGeo,hm);h.position.set(0,1.05,.72);h.castShadow=false;g.add(h);for(const sx of[-.3,.3])for(const sz of[-.42,.42]){const l=new THREE.Mesh(legGeo,new THREE.MeshLambertMaterial({color:0x333333}));l.position.set(sx,.25,sz);l.castShadow=true;g.add(l)}g.position.set(x+.5,y,z+.5);scene.add(g);mobs.push({g,phase:rnd(x+7,z+3)*6.28,speed:.25+rnd(x+2,z+8)*.3})}
 for(let i=0;i<16;i++){const x=Math.floor(rnd(i*13,5)*64-32),z=Math.floor(rnd(7,i*17)*64-32);if(Math.hypot(x,z-8)>12)spawnMob(x,z,i%2?'sheep':'cow')}
 function updateMobs(dt){for(const m of mobs){m.phase+=dt*m.speed;const dx=Math.sin(m.phase)*dt*m.speed*.9,dz=Math.cos(m.phase*.71)*dt*m.speed*.9;m.g.position.x+=dx;m.g.position.z+=dz;m.g.position.y=heightAt(Math.floor(m.g.position.x),Math.floor(m.g.position.z))+1;m.g.rotation.y=Math.atan2(dx,dz)}}
 
@@ -307,10 +320,12 @@ document.addEventListener("mousemove",e=>{
  pitch=Math.max(-1.48,Math.min(1.48,pitch));
 });
 const ray=new THREE.Raycaster(),center=new THREE.Vector2(0,0);
-function hit(){ray.setFromCamera(center,camera);return ray.intersectObjects([...blocks.values()],false).find(h=>h.distance<7)||null}
-function swing(){
-  handRoot.position.y=-.10;handRoot.rotation.x=-.16;
-  setTimeout(()=>{handRoot.position.y=0;handRoot.rotation.x=0},110);
+function hit(){
+ ray.setFromCamera(center,camera);
+ const hits=ray.intersectObjects(BLOCK_TYPES.map(t=>blockMeshes[t]),false);
+ const h=hits.find(v=>v.distance<7);if(!h)return null;
+ const type=h.object.__blockType,b=blockLists[type][h.instanceId];if(!b)return null;
+ return {object:{userData:b},face:h.face,distance:h.distance};
 }
 function breakBlock(){const h=hit();if(!h)return;const p=h.object.userData;removeBlock(p.x,p.y,p.z);swing()}
 function placeBlock(){const h=hit();if(!h)return;const n=h.face.normal,p=h.object.userData;
@@ -364,7 +379,7 @@ function loop(now){
  if(started&&!paused){physics(dt);updateMobs(dt);}
  fc++;
  if(now-ft>1000){document.getElementById("fps").textContent=`${fc} FPS • ${Math.round(innerWidth)}×${Math.round(innerHeight)}`;fc=0;ft=now}
- document.getElementById("coords").textContent=`${Math.floor(player.feet.x)} / ${Math.floor(player.feet.y)} / ${Math.floor(player.feet.z)}`;
+ if(fc%6===0)document.getElementById("coords").textContent=`${Math.floor(player.feet.x)} / ${Math.floor(player.feet.y)} / ${Math.floor(player.feet.z)}`;
  renderer.render(scene,camera);
 }
 loop(last);
