@@ -1,1 +1,13 @@
-mainmet Web Game v3: richer procedural textures, safer spawn, 36-slot inventory, keyboard guide before entry, roaming sheep/cow-like mobs, improved world generation, pause + W-to-menu, R new world, HD lighting/shadows. Independent browser game, not the official Minecraft client.
+mainmet Web Game v4
+====================
+بر پایه v3 و فقط با تغییرات درخواستی:
+- کلید حرکت جلو: Z
+- کلیدهای حرکت: Z Q S D
+- W فقط در منوی Pause برای برگشت به منوی اصلی
+- دکمه تمام‌صفحه ابتدای بازی با fallback برای مرورگرهای قدیمی‌تر اصلاح شد
+- شروع بازی مستقل از Fullscreen است و اگر مرورگر Fullscreen را نپذیرد، بازی باز هم اجرا می‌شود
+- تکسچرهای procedural با وضوح 128x128 و جزئیات بیشتر
+- دست اول‌شخص سه‌بعدی‌تر با arm/forearm/palm/fingers
+- تمام امکانات v3 حفظ شده‌اند
+
+توجه: این بازی WebGL مستقل و الهام‌گرفته از سبک Minecraft است، نه کلاینت رسمی Minecraft Java.
