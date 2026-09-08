@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minecraft Java Hub V1</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111;color:#fff;font-family:Tahoma,Arial,sans-serif}
+.app{min-height:100vh;display:flex;background:linear-gradient(135deg,#24351d,#111,#26354b)}
+aside{width:240px;background:#111e;backdrop-filter:blur(8px);padding:20px;border-left:2px solid #555}
+.logo{text-align:center;font-size:23px;font-weight:bold;margin:10px 0 25px;text-shadow:3px 3px #000}.logo small{display:block;font-size:11px;color:#aaa;margin-top:6px}
+nav button{width:100%;margin:4px 0;padding:14px;border:0;border-radius:8px;background:transparent;color:#fff;text-align:right;font-size:15px;cursor:pointer}
+nav button:hover,nav button.active{background:#416b30}
+.user{margin-top:25px;padding:12px;background:#191919;border:1px solid #555;border-radius:9px}
+.avatar{display:inline-grid;place-items:center;width:42px;height:42px;background:#6c8e45;border:2px solid #aaa;border-radius:6px;font-size:22px}
+main{flex:1;max-width:1200px;width:100%;margin:auto;padding:30px}.section{display:none}.section.active{display:block}
+h1{margin:0;text-shadow:3px 3px #000}.sub{color:#bbb;margin:6px 0 22px}
+.hero,.card{background:#161616e8;border:1px solid #555;border-radius:12px;padding:22px;box-shadow:0 12px 30px #0008;margin-bottom:18px}
+.hero{padding:32px}.hero h2{margin-top:0;font-size:28px}.hero p{color:#ccc;line-height:1.9}
+.btn{background:#527f38;color:#fff;border:0;border-radius:7px;padding:11px 17px;font-weight:bold;cursor:pointer;box-shadow:0 4px 0 #29451f}.btn.blue{background:#39729d;box-shadow:0 4px 0 #244b69}.btn.red{background:#a7443a;box-shadow:0 4px 0 #682720}
+.stats,.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:15px}.stats{margin-top:22px}.stat{background:#111b11;border:1px solid #465540;border-radius:8px;padding:15px}.stat b{display:block;font-size:24px;margin-top:5px}
+.server{position:relative}.server:before{content:"";position:absolute;top:0;right:0;left:0;height:4px;background:#5e913f;border-radius:12px 12px 0 0}
+.serverhead{display:flex;justify-content:space-between;align-items:center}.servername{font-size:19px;font-weight:bold}.status{background:#173b1b;color:#7dff88;padding:5px 9px;border-radius:20px;font-size:11px}.offline{background:#43201d;color:#ff9188}
+.ip{direction:ltr;text-align:left;background:#0b0b0b;padding:10px;border-radius:5px;font-family:monospace;color:#ddd;margin:12px 0}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.actions .btn{padding:8px 12px;font-size:12px}
+form{max-width:700px;display:grid;gap:14px}.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:7px}.field input,.field select{padding:12px;background:#0b0b0b;border:1px solid #555;border-radius:7px;color:#fff;font:inherit}
+.empty{text-align:center;color:#aaa;padding:40px;border:1px dashed #555;border-radius:10px}footer{text-align:center;color:#888;padding:25px}
+@media(max-width:750px){aside{width:70px;padding:10px}.logo{font-size:15px}.logo small,nav span,.uinfo{display:none}nav button{text-align:center;font-size:21px}main{padding:18px}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+<div class="logo">⛏️ JAVA HUB<small>Minecraft Server Panel</small></div>
+<nav>
+<button class="active" onclick="showPage('home',this)">🏠 <span>خانه</span></button>
+<button onclick="showPage('servers',this)">🌐 <span>سرورها</span></button>
+<button onclick="showPage('create',this)">➕ <span>ساخت سرور</span></button>
+<button onclick="showPage('profile',this)">👤 <span>پروفایل</span></button>
+<button onclick="showPage('skin',this)">🧥 <span>Skin</span></button>
+<button onclick="showPage('settings',this)">⚙️ <span>تنظیمات</span></button>
+</nav>
+<div class="user"><div class="avatar">🧑</div><div class="uinfo" style="display:inline-block;margin-right:7px"><b>Player</b><br><small style="color:#aaa">آفلاین</small></div></div>
+</aside>
+<main>
+
+<section id="home" class="section active">
+<div class="hero">
+<h2>Minecraft Java Hub 🎮</h2>
+<p>نسخه اول پنل ساخت و مدیریت سرور. ظاهر Minecraft Java، منوی سرورها، پروفایل، Skin و تنظیمات آماده شده است.</p>
+<button class="btn" onclick="showPage('create',document.querySelectorAll('nav button')[2])">➕ ساخت سرور</button>
+<div class="stats">
+<div class="stat">سرورهای من<b id="count">0</b></div>
+<div class="stat">آنلاین<b id="online">0</b></div>
+<div class="stat">بازیکن‌ها<b>0</b></div>
+<div class="stat">نوع<b>Java</b></div>
+</div>
+</div>
+<div class="grid">
+<div class="card"><h3>🌐 سرورهای من</h3><p class="sub">سرورهایت را مدیریت کن.</p><button class="btn blue" onclick="showPage('servers',document.querySelectorAll('nav button')[1])">مشاهده</button></div>
+<div class="card"><h3>🧥 Skin</h3><p class="sub">مدیریت Skin در نسخه بعدی تکمیل می‌شود.</p><button class="btn" onclick="showPage('skin',document.querySelectorAll('nav button')[4])">باز کردن</button></div>
+<div class="card"><h3>⚙️ تنظیمات</h3><p class="sub">تنظیمات پنل و کیفیت.</p><button class="btn" onclick="showPage('settings',document.querySelectorAll('nav button')[5])">باز کردن</button></div>
+</div>
+</section>
+
+<section id="servers" class="section">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><h1>سرورهای من</h1><div class="sub">مدیریت سرورها</div></div><button class="btn" onclick="showPage('create',document.querySelectorAll('nav button')[2])">➕ ساخت سرور</button></div>
+<div id="list" class="grid"></div>
+</section>
+
+<section id="create" class="section">
+<h1>ساخت سرور Java</h1><div class="sub">نسخه اول — اطلاعات در مرورگر ذخیره می‌شود.</div>
+<div class="card"><form onsubmit="createServer(event)">
+<div class="field"><label>نام سرور</label><input id="serverName" required placeholder="مثلاً ArMaCraft"></div>
+<div class="row"><div class="field"><label>نسخه Minecraft</label><select id="version"><option>1.21.8</option><option>1.21.7</option><option>1.21.6</option><option>1.20.6</option></select></div>
+<div class="field"><label>نوع سرور</label><select id="type"><option>Vanilla</option><option>Paper</option><option>Fabric</option></select></div></div>
+<div class="row"><div class="field"><label>حالت بازی</label><select id="mode"><option>Survival</option><option>Creative</option><option>Adventure</option></select></div>
+<div class="field"><label>RAM</label><select id="ram"><option>2 GB</option><option>4 GB</option><option>6 GB</option><option>8 GB</option></select></div></div>
+<div class="field"><label>Seed اختیاری</label><input id="seed" placeholder="Random"></div>
+<button class="btn" type="submit">⛏️ ساخت سرور</button>
+</form></div>
+</section>
+
+<section id="profile" class="section"><h1>پروفایل</h1><div class="sub">حساب بازیکن</div><div class="card"><h2>🧑 Player</h2><p>اتصال امن Microsoft در مرحله بعد اضافه می‌شود.</p><button class="btn blue" onclick="alert('ورود Microsoft در نسخه اتصال واقعی اضافه می‌شود.')">ورود به حساب</button></div></section>
+<section id="skin" class="section"><h1>Skin</h1><div class="sub">مدیریت ظاهر بازیکن</div><div class="card"><div style="font-size:80px">🧍</div><h2>Skin Manager</h2><p>آپلود و پیش‌نمایش Skin در مرحله بعد اضافه می‌شود.</p></div></section>
+<section id="settings" class="section"><h1>تنظیمات</h1><div class="sub">تنظیمات پنل</div><div class="card"><div class="field"><label>کیفیت رابط</label><select><option>High</option><option>Medium</option><option>Low</option></select></div><br><div class="field"><label>تم</label><select><option>Dark Minecraft</option><option>Dark</option></select></div></div></section>
+
+<footer>V1 • Minecraft Java Server Hub</footer>
+</main>
+</div>
+<script>
+const KEY='mc_java_hub_v1';
+let servers=JSON.parse(localStorage.getItem(KEY)||'[]');
+function save(){localStorage.setItem(KEY,JSON.stringify(servers));render();stats();}
+function showPage(id,btn){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');if(id==='servers')render();scrollTo(0,0);}
+function createServer(e){e.preventDefault();servers.push({id:Date.now(),name:serverName.value,version:version.value,type:type.value,mode:mode.value,ram:ram.value,seed:seed.value||'Random',status:'OFFLINE'});save();e.target.reset();showPage('servers',document.querySelectorAll('nav button')[1]);}
+function toggle(id){let s=servers.find(x=>x.id===id);s.status=s.status==='ONLINE'?'OFFLINE':'ONLINE';save();}
+function del(id){servers=servers.filter(x=>x.id!==id);save();}
+function render(){let box=document.getElementById('list');if(!servers.length){box.innerHTML='<div class="empty">هنوز سروری نساختی.<br><br><button class="btn" onclick="showPage(\'create\',document.querySelectorAll(\'nav button\')[2])">➕ ساخت سرور</button></div>';return;}box.innerHTML=servers.map(s=>'<div class="card server"><div class="serverhead"><div class="servername">🟩 '+esc(s.name)+'</div><span class="status '+(s.status==='OFFLINE'?'offline':'')+'">'+s.status+'</span></div><p class="sub">Minecraft '+s.version+' • '+s.type+' • '+s.mode+'</p><div class="ip">IP: در نسخه اتصال واقعی ساخته می‌شود</div><p>RAM: '+s.ram+' | Seed: '+esc(s.seed)+'</p><div class="actions"><button class="btn" onclick="toggle('+s.id+')">'+(s.status==='ONLINE'?'⏹ خاموش':'▶ روشن')+'</button><button class="btn blue" onclick="alert(\'Console واقعی در مرحله Backend اضافه می‌شود.\')">⌨️ Console</button><button class="btn red" onclick="del('+s.id+')">🗑 حذف</button></div></div>').join('');}
+function stats(){document.getElementById('count').textContent=servers.length;document.getElementById('online').textContent=servers.filter(s=>s.status==='ONLINE').length;}
+function esc(x){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+render();stats();
+</script>
+</body>
+</html>
