@@ -1,0 +1,38 @@
+name: Remember ArMaCraft account
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch play.html
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('play.html')
+          s=p.read_text(encoding='utf-8')
+          marker='/* ===== Remember ArMaCraft online account ===== */'
+          if marker not in s:
+              css='''\n/* ===== Remember ArMaCraft online account ===== */\n.armaRemember{display:flex;align-items:center;gap:8px;margin:10px 0;padding:9px;background:#0e110e;border:1px solid #454b45;border-radius:4px;font-size:12px;color:#ddd}.armaRemember input{width:18px;height:18px;accent-color:#70a84f}\n'''
+              s=s.replace('</style>',css+'</style>',1)
+              html='''\n    <label class="armaRemember"><input id="armaRemember" type="checkbox"> <span>نام اکانت آنلاین من را به خاطر بسپار</span></label>\n'''
+              s=s.replace('<div class="armaStatus" id="armaStatus"></div>',html+'    <div class="armaStatus" id="armaStatus"></div>',1)
+              js='''\n<script>\n/* ===== Remember ArMaCraft online account ===== */\n(function(){\n  const user=document.getElementById('armaUser');\n  const remember=document.getElementById('armaRemember');\n  const status=document.getElementById('armaStatus');\n  if(!user||!remember)return;\n  const saved=localStorage.getItem('mainmet.arma.remember')==='1';\n  remember.checked=saved;\n  if(saved && !user.value) user.value=localStorage.getItem('mainmet.arma.user')||localStorage.getItem('mainmet.arma.lastOnlineUser')||'';\n  remember.addEventListener('change',()=>{\n    localStorage.setItem('mainmet.arma.remember',remember.checked?'1':'0');\n    if(remember.checked && user.value.trim()) localStorage.setItem('mainmet.arma.user',user.value.trim());\n  });\n  user.addEventListener('input',()=>{\n    if(remember.checked) localStorage.setItem('mainmet.arma.user',user.value.trim());\n  });\n  window.addEventListener('mainmet:armaJoin',e=>{\n    const u=e.detail?.user||user.value.trim();\n    if(remember.checked && u){\n      localStorage.setItem('mainmet.arma.user',u);\n      localStorage.setItem('mainmet.arma.lastOnlineUser',u);\n      localStorage.setItem('mainmet.arma.lastOnlineAt',new Date().toISOString());\n      if(status) status.textContent='اکانت «'+u+'» برای ورود آنلاین به خاطر سپرده شد. رمز در سایت ذخیره نمی‌شود.';\n    }\n  });\n  const last=localStorage.getItem('mainmet.arma.lastOnlineUser');\n  const at=localStorage.getItem('mainmet.arma.lastOnlineAt');\n  if(saved && last && status && !status.textContent){\n    status.textContent='آخرین اکانت آنلاین: '+last+(at?'\nآخرین استفاده: '+new Date(at).toLocaleString('fa-IR'): '');\n  }\n})();\n</script>\n'''
+              s=s.replace('</body>',js+'</body>',1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit changes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add play.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Keep offline game and remember online account"
+          git push
