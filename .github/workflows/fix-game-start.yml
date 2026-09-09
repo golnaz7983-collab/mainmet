@@ -1,0 +1,93 @@
+name: Fix game start and texture sizes
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch play.html
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('play.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('1014×1014 MOB TEXTURES','1024×1024 MOB TEXTURES')
+          s=s.replace('1014);','1024);')
+          marker='/* ===== MAINMET_START_FIX ===== */'
+          if marker not in s:
+              patch=r'''<script>
+          /* ===== MAINMET_START_FIX ===== */
+          (function(){
+            function wire(){
+              const start=document.getElementById('startBtn');
+              const surv=document.getElementById('survivalMode');
+              const creative=document.getElementById('creativeMode');
+              if(start && !start.dataset.fixed){
+                const old=start.onclick;
+                start.onclick=function(e){
+                  try{ if(typeof old==='function') old.call(this,e); }catch(err){ console.warn('start handler',err); }
+                  document.getElementById('start')?.style.setProperty('display','none','important');
+                  document.getElementById('tip')?.classList.add('hide');
+                };
+                start.dataset.fixed='1';
+              }
+              [surv,creative].forEach(btn=>{
+                if(btn && !btn.dataset.fixed){
+                  const old=btn.onclick;
+                  btn.onclick=function(e){ try{ if(typeof old==='function') old.call(this,e); }catch(err){ console.warn('mode handler',err); } };
+                  btn.dataset.fixed='1';
+                }
+              });
+            }
+            if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire,{once:true}); else wire();
+            window.addEventListener('message',function(e){
+              const d=e.data||{};
+              if(d.type==='mainmet-start-game') setTimeout(function(){ document.getElementById('startBtn')?.click(); },0);
+            });
+          })();
+          </script>'''
+              s=s.replace('</body>',patch+'\n</body>')
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Patch index.html start bridge
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='/* ===== MAINMET_INDEX_START_FIX ===== */'
+          if marker not in s:
+              patch=r'''<script>
+          /* ===== MAINMET_INDEX_START_FIX ===== */
+          (function(){
+            const f=document.getElementById('gameFrame');
+            const b=document.getElementById('startGame') || document.querySelector('[onclick*="mainmetStartGame"]');
+            let ready=false, pending=false;
+            function send(){
+              if(!f || !f.contentWindow) return;
+              try{ f.contentWindow.postMessage({type:'mainmet-start-game'},'*'); }catch(e){}
+            }
+            if(f){
+              f.addEventListener('load',function(){ ready=true; if(pending){pending=false; setTimeout(send,80);} });
+              window.addEventListener('message',function(e){ if(e.source===f.contentWindow && e.data && e.data.type==='mainmet-ready'){ready=true; if(pending){pending=false; setTimeout(send,30);} } });
+            }
+            window.mainmetStartGame=function(){
+              if(!f) return;
+              if(ready) send(); else { pending=true; try{f.contentWindow.postMessage({type:'mainmet-start-game'},'*');}catch(e){} }
+            };
+          })();
+          </script>'''
+              s=s.replace('</body>',patch+'\n</body>')
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit fixes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add play.html index.html
+          git diff --cached --quiet || (git commit -m 'Fix game start buttons and mob texture size' && git push)
