@@ -81,7 +81,7 @@ canvas{display:block;width:100%;height:100%}
 <div id="game"></div><div id="crosshair"></div>
 <div id="brand" class="badge">mainmet • WEB GAME HD</div>
 <div id="coords" class="badge">0 / 0 / 0</div>
-<div id="fps" class="badge">4096×4096 BLOCK TEXTURES • 2048×2048 MOB TEXTURES</div>
+<div id="fps" class="badge">MINECRAFT-STYLE HD BLOCK TEXTURES • HD 3D MOBS</div>
 <button id="pauseBtn">Ⅱ</button><button id="controlSettings" title="تنظیم دکمه‌ها">⚙</button>
 <div id="tip">برای شروع روی «شروع بازی» بزن<br>ZQSD حرکت • Space پرش • موس نگاه • کلیک چپ شکستن • کلیک راست گذاشتن</div>
 
@@ -114,7 +114,7 @@ canvas{display:block;width:100%;height:100%}
 
 <div id="start"><div class="panel">
  <h1>mainmet</h1>
- <p>Web Game HD — دنیای بلوکی سه‌بعدی با درخت، ماب، Inventory، فیزیک، نور و سایه.</p><div class="keys"><div class="key"><strong>Z Q S D</strong>حرکت</div><div class="key"><strong>SHIFT</strong>دویدن</div><div class="key"><strong>SPACE</strong>پرش</div><div class="key"><strong>E</strong>Inventory</div><div class="key"><strong>1–6</strong>بلوک</div><div class="key"><strong>ESC</strong>Pause</div><div class="key"><strong>Left</strong>شکستن</div><div class="key"><strong>Right</strong>گذاشتن</div><div class="key"><strong>R</strong>دنیای جدید</div><div class="key"><strong>W در Pause</strong>خروج</div></div>
+ <p>Minecraft-style survival — شب و روز، ماب، جان، ضربه، دراپ آیتم، اسکین سه‌بعدی، Inventory و جهان بلوکی.</p><div class="keys"><div class="key"><strong>Z Q S D</strong>حرکت</div><div class="key"><strong>SHIFT</strong>دویدن</div><div class="key"><strong>SPACE</strong>پرش</div><div class="key"><strong>E</strong>Inventory</div><div class="key"><strong>1–6</strong>بلوک</div><div class="key"><strong>ESC</strong>Pause</div><div class="key"><strong>Left</strong>شکستن</div><div class="key"><strong>Right</strong>گذاشتن</div><div class="key"><strong>R</strong>دنیای جدید</div><div class="key"><strong>W در Pause</strong>خروج</div></div>
  <div class="modeSelect"><button class="modeBtn sel" id="survivalMode">🛡️ Survival</button><button class="modeBtn" id="creativeMode">🧱 Creative</button></div>
  <button class="mcbtn green" id="startBtn">🎮 شروع بازی</button>
  <button class="mcbtn" id="startFull">⛶ تمام صفحه</button>
@@ -152,8 +152,8 @@ canvas{display:block;width:100%;height:100%}
 <div id="controlsModal"><div class="controlsBox"><h2>⚙ تنظیم دکمه‌ها</h2><p>تنظیمات کامپیوتر و موبایل در همین مرورگر ذخیره می‌شود.</p><div class="controlGrid"><label class="controlRow"><span>جلو</span><input id="bindForward" value="Z" maxlength="12"></label><label class="controlRow"><span>چپ</span><input id="bindLeft" value="Q" maxlength="12"></label><label class="controlRow"><span>عقب</span><input id="bindBack" value="S" maxlength="12"></label><label class="controlRow"><span>راست</span><input id="bindRight" value="D" maxlength="12"></label><label class="controlRow"><span>پرش</span><input id="bindJump" value="Space" maxlength="12"></label><label class="controlRow"><span>Inventory</span><input id="bindInv" value="E" maxlength="12"></label></div><button class="mcbtn green" id="saveControls">ذخیره</button><button class="mcbtn" id="resetControls">پیش‌فرض</button><button class="mcbtn" id="closeControls">بستن</button></div></div>
 <div id="rotate"><div><div style="font-size:60px">📱↔️</div><h2>گوشی را افقی کن</h2><p>mainmet برای بازی در حالت افقی طراحی شده است.</p></div></div>
 
-<script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
+<script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+<script>
 
 /* ---------- renderer / camera ---------- */
 const scene=new THREE.Scene();
@@ -182,11 +182,11 @@ thumb.position.set(.00,-.73,-.73);thumb.rotation.z=-.45;handRoot.add(thumb);
 camera.add(handRoot);
 
 const renderer=new THREE.WebGLRenderer({
- antialias:true,
+ antialias:false,
  powerPreference:"high-performance",
  precision:"highp"
 });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.25));
 renderer.setSize(innerWidth,innerHeight,false);
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.shadowMap.enabled=true;
@@ -197,7 +197,7 @@ scene.add(new THREE.HemisphereLight(0xd9f3ff,0x4f5d3b,1.8));
 const sun=new THREE.DirectionalLight(0xffffff,2.15);
 sun.position.set(-35,65,25);
 sun.castShadow=true;
-sun.shadow.mapSize.set(2048,2048);
+sun.shadow.mapSize.set(1024,1024);
 sun.shadow.camera.left=-65;sun.shadow.camera.right=65;sun.shadow.camera.top=65;sun.shadow.camera.bottom=-65;
 sun.shadow.camera.near=1;sun.shadow.camera.far=180;
 scene.add(sun);
@@ -946,5 +946,20 @@ body.mainmet-realistic canvas{filter:saturate(1.08) contrast(1.035) brightness(1
   if(window.parent!==window)window.parent.postMessage({type:'mainmet-ready'},'*');
 })();
 </script>
-</body>
+
+<script id="MAINMET_EMERGENCY_START">
+(()=>{
+  const ready=()=>{
+    const start=document.getElementById('start');
+    const btn=document.getElementById('startBtn');
+    if(!btn||btn.__emergencyBound)return;
+    btn.__emergencyBound=true;
+    btn.addEventListener('click',()=>{start&&(start.style.display='none');document.getElementById('tip')?.classList.add('hide')},{capture:true});
+    document.getElementById('survivalMode')?.addEventListener('click',()=>{localStorage.setItem('mainmet.gamemode','survival')});
+    document.getElementById('creativeMode')?.addEventListener('click',()=>{localStorage.setItem('mainmet.gamemode','creative')});
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
+})();
+</script>
+\n<script id="MAINMET_SURVIVAL_SYSTEM">\n(()=>{\n  const boot=()=>{\n    if(!window.THREE||!window.scene||!window.renderer)return;\n    const state=window.mainmetSurvival={health:20,maxHealth:20,time:0,drops:[],mobs:[],dayLength:480};\n    const oldStart=window.mainmetStartGame;\n    const skyDay=new THREE.Color(0x82c9f2),skyNight=new THREE.Color(0x081225);\n    const dropGeo=new THREE.BoxGeometry(.22,.22,.22);\n    function drop(x,y,z,type){const m=new THREE.Mesh(dropGeo,new THREE.MeshLambertMaterial({color:type==='wood'?0x8b5b34:type==='stone'?0x777777:0x69aa4a}));m.position.set(x,y,z);m.userData={type,life:0};scene.add(m);state.drops.push(m)}\n    function damageMob(m,amount=2){if(!m||!m.g)return; m.hp=(m.hp??10)-amount; m.g.scale.y=.82; setTimeout(()=>m.g.scale.y=1,90); if(m.hp<=0){const p=m.g.position.clone();scene.remove(m.g);m.dead=true;drop(p.x,p.y+.3,p.z,m.type==='cow'?'meat':'wool')}}\n    window.mainmetDamageMob=damageMob;\n    const oldMousedown=renderer.domElement.onmousedown;\n    renderer.domElement.addEventListener('mousedown',e=>{if(e.button!==0)return;try{const r=new THREE.Raycaster();r.setFromCamera(new THREE.Vector2(0,0),camera);for(const m of (window.mobs||[])){if(m.g&&!m.dead){const h=r.intersectObject(m.g,true);if(h.length&&h[0].distance<7){damageMob(m,2);break}}}}catch(_){}});\n    const originalMobs=window.mobs; if(Array.isArray(originalMobs)){originalMobs.forEach(m=>{m.hp=10;state.mobs.push(m)})}\n    const animateSky=()=>{\n      const phase=(state.time%state.dayLength)/state.dayLength;\n      const sunA=Math.max(0,Math.sin(phase*Math.PI*2-Math.PI/2));\n      scene.background=skyNight.clone().lerp(skyDay,sunA);\n      if(window.sun){sun.intensity=.18+1.95*sunA;sun.position.set(Math.cos(phase*Math.PI*2)*60,20+55*sunA,Math.sin(phase*Math.PI*2)*60)}\n      if(window.renderer)renderer.toneMappingExposure=.72+.5*sunA;\n    };\n    const loop=()=>{if(window.started&&!window.paused){state.time+=1/60;animateSky();for(const d of state.drops){d.userData.life+=1/60;d.rotation.y+=.03;if(d.userData.life>45){scene.remove(d)}}state.drops=state.drops.filter(d=>d.parent)};requestAnimationFrame(loop)};\n    loop();\n  };\n  const wait=setInterval(()=>{if(window.scene&&window.renderer&&window.camera){clearInterval(wait);boot()}},250);\n})();\n</script>\n\n<style id="MAINMET_MINIMAP">#mainmet-minimap{position:fixed;right:14px;top:98px;width:150px;height:150px;z-index:40;border:2px solid #555;background:#101510d9;image-rendering:pixelated;pointer-events:none}.mainmet-mp-title{position:fixed;right:18px;top:102px;z-index:41;color:#fff;font:700 10px Tahoma;text-shadow:2px 2px #000}</style>\n<canvas id="mainmet-minimap" width="150" height="150"></canvas><div class="mainmet-mp-title">MAP</div>\n<script id="MAINMET_MINIMAP_SCRIPT">\n(()=>{const c=document.getElementById('mainmet-minimap'),x=c.getContext('2d');function draw(){x.clearRect(0,0,150,150);x.fillStyle='#1c351d';x.fillRect(0,0,150,150);const p=window.player;if(p){x.fillStyle='#7bb35a';for(let i=-7;i<=7;i++)for(let j=-7;j<=7;j++){const wx=Math.floor(p.feet.x)+i,wz=Math.floor(p.feet.z)+j,h=Math.max(2,window.heightAt?heightAt(wx,wz):4);x.fillStyle=h>6?'#315c35':h<4?'#c5ad63':'#47763f';x.fillRect(75+i*7,75+j*7,6,6)}}x.fillStyle='#fff';x.fillRect(72,72,6,6);requestAnimationFrame(draw)}draw()})();\n</script>\n</body>
 </html>
