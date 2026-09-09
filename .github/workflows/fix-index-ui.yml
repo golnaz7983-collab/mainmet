@@ -1,0 +1,24 @@
+name: Fix mainmet player UI
+on:
+  push:
+    paths:
+      - 'scripts/fix_index_ui.py'
+      - '.github/workflows/fix-index-ui.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index UI
+        run: python3 scripts/fix_index_ui.py
+      - name: Commit UI fixes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Fix game start and per-player controls'
+          git push
