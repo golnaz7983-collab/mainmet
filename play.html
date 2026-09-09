@@ -929,5 +929,22 @@ loop(last);
  },true);
 })();
 </script>
+
+<style id="MAINMET_MODS_PLAY_V1">
+#mainmet-realistic-vignette{position:fixed;inset:0;z-index:18;pointer-events:none;opacity:0;transition:opacity .35s;background:radial-gradient(circle at 50% 45%,transparent 42%,rgba(0,0,0,.18) 72%,rgba(0,0,0,.46) 100%);mix-blend-mode:multiply}
+#mainmet-realistic-film{position:fixed;inset:0;z-index:17;pointer-events:none;opacity:0;transition:opacity .35s;background:linear-gradient(180deg,rgba(255,245,215,.045),transparent 45%,rgba(40,55,75,.055));mix-blend-mode:soft-light}
+body.mainmet-realistic #mainmet-realistic-vignette{opacity:1}body.mainmet-realistic #mainmet-realistic-film{opacity:1}
+body.mainmet-realistic canvas{filter:saturate(1.08) contrast(1.035) brightness(1.015)}
+</style>
+<div id="mainmet-realistic-vignette"></div><div id="mainmet-realistic-film"></div>
+<script id="MAINMET_MODS_PLAY_SCRIPT">
+(()=>{
+  const key='mainmet.mod.realistic';
+  const apply=on=>{document.body.classList.toggle('mainmet-realistic',!!on);localStorage.setItem(key,on?'1':'0')};
+  apply(localStorage.getItem(key)==='1');
+  window.addEventListener('message',e=>{const d=e.data||{};if(d.type==='mainmet-mod'&&d.mod==='realistic')apply(!!d.enabled)});
+  if(window.parent!==window)window.parent.postMessage({type:'mainmet-ready'},'*');
+})();
+</script>
 </body>
 </html>
