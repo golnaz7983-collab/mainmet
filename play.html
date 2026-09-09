@@ -81,7 +81,7 @@ canvas{display:block;width:100%;height:100%}
 <div id="game"></div><div id="crosshair"></div>
 <div id="brand" class="badge">mainmet • WEB GAME 2048</div>
 <div id="coords" class="badge">0 / 0 / 0</div>
-<div id="fps" class="badge">2048×2048 BLOCK TEXTURES • 1014×1014 MOB TEXTURES</div>
+<div id="fps" class="badge">2048×2048 BLOCK TEXTURES • 1024×1024 MOB TEXTURES</div>
 <button id="pauseBtn">Ⅱ</button><button id="controlSettings" title="تنظیم دکمه‌ها">⚙</button>
 <div id="tip">برای شروع روی «شروع بازی» بزن<br>ZQSD حرکت • Space پرش • موس نگاه • کلیک چپ شکستن • کلیک راست گذاشتن</div>
 
@@ -239,28 +239,28 @@ const grassTop=tex("#69aa4a","#4d8c3c",41);
 const woodTex=tex("#8b5b34","#704827",53);
 const leavesTex=tex("#3d803b","#2f6d32",61);
 const sandTex=tex("#cfb66d","#bca15b",73);
-const cowTex=tex("#6b472c","#3e2818",91,1014);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
-const cowTex=tex("#6b472c","#3e2818",91,1014);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
-const cowTex=tex("#6b472c","#3e2818",91,1014);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
-const cowTex=tex("#6b472c","#3e2818",91,1014);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
-const cowTex=tex("#6b472c","#3e2818",91,1014);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
-const cowTex=tex("#6b472c","#3e2818",91,1014);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
-const cowTex=tex("#6b472c","#3e2818",91,1014);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
-const cowTex=tex("#6b472c","#3e2818",91,1014);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
-const cowTex=tex("#6b472c","#3e2818",91,1014);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
-const cowTex=tex("#6b472c","#3e2818",91,1014);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
-const cowTex=tex("#6b472c","#3e2818",91,1014);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
+const cowTex=tex("#6b472c","#3e2818",91,1024);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
+const cowTex=tex("#6b472c","#3e2818",91,1024);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
+const cowTex=tex("#6b472c","#3e2818",91,1024);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
+const cowTex=tex("#6b472c","#3e2818",91,1024);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
+const cowTex=tex("#6b472c","#3e2818",91,1024);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
+const cowTex=tex("#6b472c","#3e2818",91,1024);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
+const cowTex=tex("#6b472c","#3e2818",91,1024);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
+const cowTex=tex("#6b472c","#3e2818",91,1024);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
+const cowTex=tex("#6b472c","#3e2818",91,1024);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
+const cowTex=tex("#6b472c","#3e2818",91,1024);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
+const cowTex=tex("#6b472c","#3e2818",91,1024);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
 
 const sideMat=new THREE.MeshLambertMaterial({map:grassSide});
 const topMat=new THREE.MeshLambertMaterial({map:grassTop});
@@ -745,5 +745,36 @@ loop(last);
 })();
 </script>
 /* ===== MAINMET_START_BRIDGE ===== */
+<script>
+/* ===== MAINMET_START_FIX ===== */
+(function(){
+  function wire(){
+    const start=document.getElementById('startBtn');
+    const surv=document.getElementById('survivalMode');
+    const creative=document.getElementById('creativeMode');
+    if(start && !start.dataset.fixed){
+      const old=start.onclick;
+      start.onclick=function(e){
+        try{ if(typeof old==='function') old.call(this,e); }catch(err){ console.warn('start handler',err); }
+        document.getElementById('start')?.style.setProperty('display','none','important');
+        document.getElementById('tip')?.classList.add('hide');
+      };
+      start.dataset.fixed='1';
+    }
+    [surv,creative].forEach(btn=>{
+      if(btn && !btn.dataset.fixed){
+        const old=btn.onclick;
+        btn.onclick=function(e){ try{ if(typeof old==='function') old.call(this,e); }catch(err){ console.warn('mode handler',err); } };
+        btn.dataset.fixed='1';
+      }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire,{once:true}); else wire();
+  window.addEventListener('message',function(e){
+    const d=e.data||{};
+    if(d.type==='mainmet-start-game') setTimeout(function(){ document.getElementById('startBtn')?.click(); },0);
+  });
+})();
+</script>
 </body>
 </html>
