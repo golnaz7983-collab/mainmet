@@ -1,0 +1,111 @@
+name: Add mainmet mods system
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/mods-system.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add mods menu and realistic mod
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          # ---------- index.html: + button + mods modal ----------
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = s
+
+          if 'MAINMET_MODS_INDEX_V1' not in s:
+              s = s.replace(
+                  '</head>',
+                  '''<style id="MAINMET_MODS_INDEX_V1">
+          #mainmet-mods-plus{position:fixed;top:76px;right:18px;z-index:9999;width:46px;height:46px;border:2px solid #111;border-radius:6px;background:linear-gradient(#7cae58,#466e32);color:#fff;font-size:28px;font-weight:1000;line-height:1;cursor:pointer;box-shadow:inset 0 2px #c8e1b0,0 4px 0 #161616;text-shadow:2px 2px #222}
+          #mainmet-mods-plus:active{transform:translateY(3px);box-shadow:inset 0 2px #c8e1b0,0 1px 0 #161616}
+          #mainmet-mods-modal{position:fixed;inset:0;z-index:10000;background:#000b;display:none;align-items:center;justify-content:center;padding:18px}
+          #mainmet-mods-modal.show{display:flex}
+          .mainmet-mods-box{width:min(650px,96vw);max-height:86vh;overflow:auto;background:#171a17;border:3px solid #555;box-shadow:0 24px 90px #000;padding:20px;border-radius:6px;color:#fff;font-family:Tahoma,Arial,sans-serif;direction:rtl}
+          .mainmet-mods-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #4b514b;padding-bottom:12px;margin-bottom:14px}
+          .mainmet-mod-card{display:flex;align-items:center;gap:12px;background:linear-gradient(#222622,#171a17);border:2px solid #4e554e;border-radius:5px;padding:13px;margin:9px 0}
+          .mainmet-mod-icon{font-size:28px;width:44px;text-align:center}.mainmet-mod-info{flex:1}.mainmet-mod-info b{display:block;font-size:15px}.mainmet-mod-info span{display:block;color:#aaa;font-size:11px;line-height:1.8;margin-top:3px}
+          .mainmet-mod-toggle{min-width:92px;border:2px solid #222;background:#555;color:#fff;border-radius:4px;padding:8px 10px;font-weight:900;cursor:pointer}.mainmet-mod-toggle.on{background:#4e7d35}
+          @media(max-width:600px){#mainmet-mods-plus{top:64px;right:10px}.mainmet-mod-card{align-items:flex-start}}
+          </style>
+          <button id="mainmet-mods-plus" aria-label="Mods">+</button>
+          <div id="mainmet-mods-modal" aria-hidden="true">
+            <div class="mainmet-mods-box">
+              <div class="mainmet-mods-head"><h2 style="margin:0">🧩 مودهای mainmet</h2><button id="mainmet-mods-close" class="smallbtn">✕</button></div>
+              <div style="color:#bbb;font-size:12px;line-height:1.9">مودها داخل خود بازی اجرا می‌شوند و تنظیماتشان روی همین دستگاه ذخیره می‌شود.</div>
+              <div class="mainmet-mod-card">
+                <div class="mainmet-mod-icon">🌄</div><div class="mainmet-mod-info"><b>Realistic Minecraft • واقع‌گراتر</b><span>نور و فضای تصویر طبیعی‌تر، عمق دید و افکت سینمایی ملایم؛ بدون دست‌زدن به کنترل‌ها یا جهان بازی.</span></div>
+                <button class="mainmet-mod-toggle" id="mainmet-realistic-toggle">خاموش</button>
+              </div>
+              <div style="margin-top:14px;padding:11px;background:#292314;border:1px solid #725f2b;border-radius:4px;color:#e9dba7;font-size:11px;line-height:1.8">نسخه اول سیستم مودها آماده است. مودهای بعدی را می‌توانیم به همین فهرست اضافه کنیم.</div>
+            </div>
+          </div>
+          <script id="MAINMET_MODS_INDEX_SCRIPT">
+          (()=>{
+            const plus=document.getElementById('mainmet-mods-plus'),modal=document.getElementById('mainmet-mods-modal'),close=document.getElementById('mainmet-mods-close'),tog=document.getElementById('mainmet-realistic-toggle');
+            const key='mainmet.mod.realistic';
+            const set=on=>{localStorage.setItem(key,on?'1':'0');tog.textContent=on?'روشن':'خاموش';tog.classList.toggle('on',on);try{document.getElementById('gameFrame')?.contentWindow.postMessage({type:'mainmet-mod',mod:'realistic',enabled:on},'*')}catch(e){}};
+            plus?.addEventListener('click',()=>{modal.classList.add('show');modal.setAttribute('aria-hidden','false')});close?.addEventListener('click',()=>{modal.classList.remove('show');modal.setAttribute('aria-hidden','true')});modal?.addEventListener('click',e=>{if(e.target===modal)close.click()});tog?.addEventListener('click',()=>set(localStorage.getItem(key)!=='1'));set(localStorage.getItem(key)==='1');
+            window.addEventListener('message',e=>{if(e.data?.type==='mainmet-ready'&&localStorage.getItem(key)==='1')set(true)});
+          })();
+          </script>
+          </head>''',
+                  1
+              )
+
+          if s != old:
+              p.write_text(s, encoding='utf-8')
+
+          # ---------- play.html: receive mod + visual layer ----------
+          p = Path('play.html')
+          s = p.read_text(encoding='utf-8')
+          old = s
+          if 'MAINMET_MODS_PLAY_V1' not in s:
+              injection = '''
+          <style id="MAINMET_MODS_PLAY_V1">
+          #mainmet-realistic-vignette{position:fixed;inset:0;z-index:18;pointer-events:none;opacity:0;transition:opacity .35s;background:radial-gradient(circle at 50% 45%,transparent 42%,rgba(0,0,0,.18) 72%,rgba(0,0,0,.46) 100%);mix-blend-mode:multiply}
+          #mainmet-realistic-film{position:fixed;inset:0;z-index:17;pointer-events:none;opacity:0;transition:opacity .35s;background:linear-gradient(180deg,rgba(255,245,215,.045),transparent 45%,rgba(40,55,75,.055));mix-blend-mode:soft-light}
+          body.mainmet-realistic #mainmet-realistic-vignette{opacity:1}body.mainmet-realistic #mainmet-realistic-film{opacity:1}
+          body.mainmet-realistic canvas{filter:saturate(1.08) contrast(1.035) brightness(1.015)}
+          </style>
+          <div id="mainmet-realistic-vignette"></div><div id="mainmet-realistic-film"></div>
+          <script id="MAINMET_MODS_PLAY_SCRIPT">
+          (()=>{
+            const key='mainmet.mod.realistic';
+            const apply=on=>{document.body.classList.toggle('mainmet-realistic',!!on);localStorage.setItem(key,on?'1':'0')};
+            apply(localStorage.getItem(key)==='1');
+            window.addEventListener('message',e=>{const d=e.data||{};if(d.type==='mainmet-mod'&&d.mod==='realistic')apply(!!d.enabled)});
+            if(window.parent!==window)window.parent.postMessage({type:'mainmet-ready'},'*');
+          })();
+          </script>
+          '''
+              s = s.replace('</body>', injection + '</body>', 1)
+              if s != old:
+                  p.write_text(s, encoding='utf-8')
+
+      - name: Commit changes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html play.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Add mods menu and realistic Minecraft mod"
+          git push
