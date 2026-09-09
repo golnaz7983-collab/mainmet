@@ -10,8 +10,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Directly upgrade play.html
-        run: python3 scripts/direct_upgrade.py
+      - name: Directly upgrade play.html only when needed
+        run: |
+          if ! grep -q 'const cowTex=' play.html; then
+            python3 scripts/direct_upgrade.py
+          fi
+      - name: Repair mob textures and duplicate declarations
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('play.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('1014×1014 MOB TEXTURES','1024×1024 MOB TEXTURES')
+          s=s.replace('1014);','1024);')
+          lines=s.splitlines()
+          out=[]
+          seen_cow=False
+          seen_sheep=False
+          for line in lines:
+              t=line.strip()
+              if t.startswith('const cowTex='):
+                  if seen_cow: continue
+                  seen_cow=True
+              if t.startswith('const sheepTex='):
+                  if seen_sheep: continue
+                  seen_sheep=True
+              out.append(line)
+          p.write_text('\n'.join(out)+'\n',encoding='utf-8')
+          PY
       - name: Add game start bridge
         shell: bash
         run: |
@@ -21,7 +48,7 @@ jobs:
           s=p.read_text(encoding='utf-8')
           marker='/* ===== MAINMET_START_BRIDGE ===== */'
           if marker not in s:
-              bridge='''\n<script>\n/* ===== MAINMET_START_BRIDGE ===== */\n(function(){\n  window.addEventListener('message',function(e){\n    const d=e.data||{};\n    if(d.type==='mainmet-start-game'){\n      const start=document.querySelector('#start .mcbtn.green')||document.getElementById('startGame');\n      if(start){start.click();}\n      const tip=document.getElementById('tip');\n      if(tip) tip.classList.add('hide');\n    }\n    if(d.type==='mainmet-control-settings' && d.settings){\n      Object.keys(d.settings).forEach(k=>localStorage.setItem('mainmet.player.'+k,String(d.settings[k])));\n    }\n  });\n  if(window.parent!==window){\n    window.parent.postMessage({type:'mainmet-ready'},'*');\n  }\n})();\n</script>\n'''
+              bridge='''\n<script>\n/* ===== MAINMET_START_BRIDGE ===== */\n(function(){\n  window.addEventListener('message',function(e){\n    const d=e.data||{};\n    if(d.type==='mainmet-start-game'){\n      const start=document.querySelector('#start .mcbtn.green')||document.getElementById('startBtn');\n      if(start){setTimeout(()=>start.click(),0);}\n      const tip=document.getElementById('tip');\n      if(tip) tip.classList.add('hide');\n    }\n    if(d.type==='mainmet-control-settings' && d.settings){\n      Object.keys(d.settings).forEach(k=>localStorage.setItem('mainmet.player.'+k,String(d.settings[k])));\n    }\n  });\n  if(window.parent!==window){\n    window.parent.postMessage({type:'mainmet-ready'},'*');\n  }\n})();\n</script>\n'''
               s=s.replace('</body>',bridge+marker+'\n</body>',1)
               p.write_text(s,encoding='utf-8')
           PY
@@ -49,5 +76,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add play.html
           git diff --cached --quiet && exit 0
-          git commit -m "Connect game start and player controls"
+          git commit -m "Repair game start and mob texture size"
           git push
