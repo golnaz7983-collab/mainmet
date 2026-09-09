@@ -79,9 +79,9 @@ canvas{display:block;width:100%;height:100%}
 </head>
 <body>
 <div id="game"></div><div id="crosshair"></div>
-<div id="brand" class="badge">mainmet • WEB GAME 2048</div>
+<div id="brand" class="badge">mainmet • WEB GAME HD</div>
 <div id="coords" class="badge">0 / 0 / 0</div>
-<div id="fps" class="badge">2048×2048 BLOCK TEXTURES • 1024×1024 MOB TEXTURES</div>
+<div id="fps" class="badge">4096×4096 BLOCK TEXTURES • 2048×2048 MOB TEXTURES</div>
 <button id="pauseBtn">Ⅱ</button><button id="controlSettings" title="تنظیم دکمه‌ها">⚙</button>
 <div id="tip">برای شروع روی «شروع بازی» بزن<br>ZQSD حرکت • Space پرش • موس نگاه • کلیک چپ شکستن • کلیک راست گذاشتن</div>
 
@@ -114,7 +114,7 @@ canvas{display:block;width:100%;height:100%}
 
 <div id="start"><div class="panel">
  <h1>mainmet</h1>
- <p>Web Game 2048×2048 — دنیای بلوکی سه‌بعدی با درخت، ماب، Inventory، فیزیک، نور و سایه.</p><div class="keys"><div class="key"><strong>Z Q S D</strong>حرکت</div><div class="key"><strong>SHIFT</strong>دویدن</div><div class="key"><strong>SPACE</strong>پرش</div><div class="key"><strong>E</strong>Inventory</div><div class="key"><strong>1–6</strong>بلوک</div><div class="key"><strong>ESC</strong>Pause</div><div class="key"><strong>Left</strong>شکستن</div><div class="key"><strong>Right</strong>گذاشتن</div><div class="key"><strong>R</strong>دنیای جدید</div><div class="key"><strong>W در Pause</strong>خروج</div></div>
+ <p>Web Game HD — دنیای بلوکی سه‌بعدی با درخت، ماب، Inventory، فیزیک، نور و سایه.</p><div class="keys"><div class="key"><strong>Z Q S D</strong>حرکت</div><div class="key"><strong>SHIFT</strong>دویدن</div><div class="key"><strong>SPACE</strong>پرش</div><div class="key"><strong>E</strong>Inventory</div><div class="key"><strong>1–6</strong>بلوک</div><div class="key"><strong>ESC</strong>Pause</div><div class="key"><strong>Left</strong>شکستن</div><div class="key"><strong>Right</strong>گذاشتن</div><div class="key"><strong>R</strong>دنیای جدید</div><div class="key"><strong>W در Pause</strong>خروج</div></div>
  <div class="modeSelect"><button class="modeBtn sel" id="survivalMode">🛡️ Survival</button><button class="modeBtn" id="creativeMode">🧱 Creative</button></div>
  <button class="mcbtn green" id="startBtn">🎮 شروع بازی</button>
  <button class="mcbtn" id="startFull">⛶ تمام صفحه</button>
@@ -203,7 +203,7 @@ sun.shadow.camera.near=1;sun.shadow.camera.far=180;
 scene.add(sun);
 
 /* ---------- crisp pixel textures generated locally ---------- */
-function tex(base,accent,seed=1,size=2048){
+function tex(base,accent,seed=1,size=4096){
  const c=document.createElement("canvas");c.width=c.height=size;
  const x=c.getContext("2d",{alpha:false});
  x.imageSmoothingEnabled=false;
@@ -239,8 +239,8 @@ const grassTop=tex("#69aa4a","#4d8c3c",41);
 const woodTex=tex("#8b5b34","#704827",53);
 const leavesTex=tex("#3d803b","#2f6d32",61);
 const sandTex=tex("#cfb66d","#bca15b",73);
-const cowTex=tex("#6b472c","#3e2818",91,1024);
-const sheepTex=tex("#e8e7df","#b9b9b3",103,1024);
+const cowTex=tex("#6b472c","#3e2818",91,2048);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,2048);
 
 const sideMat=new THREE.MeshLambertMaterial({map:grassSide});
 const topMat=new THREE.MeshLambertMaterial({map:grassTop});
@@ -790,6 +790,120 @@ loop(last);
     const d=e.data||{};
     if(d.type==='mainmet-start-game') setTimeout(function(){ document.getElementById('startBtn')?.click(); },0);
   });
+})();
+</script>
+<script>
+/* ===== MAINMET_FEATURE_UPGRADE_V2 ===== */
+(()=>{
+  const $=id=>document.getElementById(id);
+
+  /* Survival HUD: hearts + hunger */
+  const hud=document.createElement('div');
+  hud.id='survivalHud';
+  hud.innerHTML='<span id="hpHud">❤❤❤❤❤❤❤❤❤❤</span><span id="foodHud">🍗🍗🍗🍗🍗🍗🍗🍗🍗🍗</span>';
+  hud.style.cssText='position:fixed;z-index:28;left:50%;bottom:82px;transform:translateX(-50%);display:none;background:#111c;border:2px solid #555;border-radius:4px;padding:4px 8px;font-size:19px;line-height:1;text-shadow:2px 2px #000;direction:ltr;pointer-events:none;white-space:nowrap';
+  document.body.appendChild(hud);
+  const style=document.createElement('style');
+  style.textContent='#survivalHud #hpHud{color:#e33;margin-right:10px}#survivalHud #foodHud{color:#e7b84f}#dropToast{position:fixed;z-index:150;left:50%;top:18%;transform:translateX(-50%);background:#111e;color:#fff;border:2px solid #777;border-radius:5px;padding:8px 12px;display:none;font-weight:900}#craftBox{margin-top:8px;padding:10px;background:#0e110e;border:1px solid #555;border-radius:4px}#craftGrid{display:grid;grid-template-columns:repeat(3,48px);gap:4px;justify-content:center;margin:8px}#craftGrid button{height:48px;background:#666;border:2px solid #222;color:#fff;font-size:20px}#craftOut{display:flex;gap:8px;justify-content:center;align-items:center}#craftBtn{padding:8px 14px}#hand{display:none!important}';
+  document.head.appendChild(style);
+  const toast=document.createElement('div');toast.id='dropToast';document.body.appendChild(toast);
+
+  let hp=20, food=20;
+  function bars(){
+    const mode=(typeof gameMode!=='undefined'?gameMode:'survival');
+    hud.style.display=mode==='survival'?'block':'none';
+    if($('hpHud')) $('hpHud').textContent='❤'.repeat(Math.ceil(hp/2))+'♡'.repeat(10-Math.ceil(hp/2));
+    if($('foodHud')) $('foodHud').textContent='🍗'.repeat(Math.ceil(food/2))+'▫'.repeat(10-Math.ceil(food/2));
+  }
+  window.mainmetDamagePlayer=(n=1)=>{hp=Math.max(0,hp-n);bars();if(hp===0){hp=20;food=20;if(typeof player!=='undefined'){player.feet.set(.5,heightAt(0,8)+1.02,8.5);player.vel.set(0,0,0)}show('You died — respawned');}};
+  function show(t){toast.textContent=t;toast.style.display='block';clearTimeout(show.t);show.t=setTimeout(()=>toast.style.display='none',1200)}
+
+  /* Extra passive mobs: pig + horse. Existing cow/sheep remain. */
+  const extra=[];
+  const pigTex=tex('#d88f92','#b86f73',211,2048);
+  const horseTex=tex('#8a5b3d','#5e3b27',223,2048);
+  function animal(x,z,type){
+    const g=new THREE.Group(), y=heightAt(Math.floor(x),Math.floor(z))+1;
+    const tx=type==='pig'?pigTex:horseTex;
+    const mat=new THREE.MeshLambertMaterial({map:tx});
+    const body=new THREE.Mesh(new THREE.BoxGeometry(type==='horse'?1.0:.9,.72,type==='horse'?1.55:1.2),mat);body.position.y=.75;g.add(body);
+    const head=new THREE.Mesh(new THREE.BoxGeometry(.62,.62,.62),mat);head.position.set(0,type==='horse'?1.35:1.08,.78);g.add(head);
+    const lg=type==='horse'?.16:.18, lh=type==='horse'?.8:.55;
+    for(const sx of[-.3,.3])for(const sz of[-.42,.42]){const l=new THREE.Mesh(new THREE.BoxGeometry(lg,lh,lg),mat);l.position.set(sx,lh/2,sz);g.add(l)}
+    g.position.set(x+.5,y,z+.5);scene.add(g);
+    extra.push({g,type,hp:10,phase:Math.random()*6.28,speed:.2+Math.random()*.25,flash:0});
+  }
+  for(let i=0;i<8;i++){const x=(i*11)%48-24,z=(i*17)%48-24;if(Math.hypot(x,z-8)>10)animal(x,z,i%2?'pig':'horse')}
+
+  function mobHit(){
+    if(!started||paused)return false;
+    const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),camera);
+    const objs=[]; for(const m of (typeof mobs!=='undefined'?mobs:[])) objs.push(m.g); for(const m of extra) objs.push(m.g);
+    const hits=ray.intersectObjects(objs,true).filter(h=>h.distance<7);
+    if(!hits.length)return false;
+    let o=hits[0].object;while(o.parent&&!extra.some(m=>m.g===o)&&!(typeof mobs!=='undefined'&&mobs.some(m=>m.g===o)))o=o.parent;
+    const em=extra.find(m=>m.g===o);
+    if(em){em.hp-=4;em.flash=.18;show('🐷/🐴 -4 HP');if(em.hp<=0){drop(em.g.position,em.type==='pig'?'Porkchop':'Raw Beef');scene.remove(em.g);extra.splice(extra.indexOf(em),1)}return true}
+    const om=typeof mobs!=='undefined'?mobs.find(m=>m.g===o):null;
+    if(om){om.hp=(om.hp||10)-4;om.flash=.18;show('Animal -4 HP');if(om.hp<=0){drop(om.g.position,om.g.userData?.type==='sheep'?'Mutton':'Raw Beef');scene.remove(om.g);mobs.splice(mobs.indexOf(om),1)}return true}
+    return false;
+  }
+  function flashMob(m,dt){if(m.flash>0){m.flash-=dt;m.g.traverse(o=>{if(o.material&&o.material.emissive)o.material.emissive.setHex(0x660000)})}else m.g.traverse(o=>{if(o.material&&o.material.emissive)o.material.emissive.setHex(0)})}
+  function drop(pos,name){
+    const o=new THREE.Mesh(new THREE.BoxGeometry(.22,.22,.22),new THREE.MeshLambertMaterial({color:name==='Porkchop'?0xd98989:0x8b4b35}));o.position.copy(pos);o.position.y+=.6;o.userData={name,ttl:45};scene.add(o);drops.push(o);show('دراپ: '+name)
+  }
+  const drops=[];
+  function updateDrops(dt){for(let i=drops.length-1;i>=0;i--){const d=drops[i];d.userData.ttl-=dt;d.rotation.y+=dt*2;if(typeof player!=='undefined'&&d.position.distanceTo(player.feet)<1.5){featureInv[d.userData.name]=(featureInv[d.userData.name]||0)+1;scene.remove(d);drops.splice(i,1);show('+ '+d.userData.name)}else if(d.userData.ttl<=0){scene.remove(d);drops.splice(i,1)}}}
+  function updateExtra(dt){for(const m of extra){m.phase+=dt*m.speed;const dx=Math.sin(m.phase)*dt*m.speed,dz=Math.cos(m.phase*.73)*dt*m.speed;m.g.position.x+=dx;m.g.position.z+=dz;m.g.position.y=heightAt(Math.floor(m.g.position.x),Math.floor(m.g.position.z))+1;m.g.rotation.y=Math.atan2(dx,dz);flashMob(m,dt)}updateDrops(dt);bars()}
+
+  /* Block drops: replace the existing break function so every broken block leaves a pickup. */
+  const oldBreak=window.breakBlock;
+  window.breakBlock=()=>{
+    const before=hit?.(); if(!before)return;
+    const p=before.object.userData;
+    if(typeof removeBlock==='function'){removeBlock(p.x,p.y,p.z);if(typeof rememberEdit==='function')rememberEdit(p.x,p.y,p.z,null);drop(new THREE.Vector3(p.x+.5,p.y+1,p.z+.5),p.type||'Block');if(typeof swing==='function')swing()}
+  };
+  renderer.domElement.addEventListener('mousedown',e=>{if(e.button===0&&mobHit())e.stopImmediatePropagation()},true);
+  renderer.domElement.addEventListener('mousedown',e=>{if(e.button===0&&!mobHit()){}},false);
+
+  /* Keep original touch/keyboard block breaking working, but ensure drops appear. */
+  window.addEventListener('keydown',e=>{if(e.code==='KeyE'&&typeof openInventory==='function'){setTimeout(()=>renderFeatureInventory(),0)}});
+
+  const featureInv={};
+  function renderFeatureInventory(){
+    const grid=$('invgrid');if(!grid)return;
+    grid.querySelectorAll('.feature-count').forEach(x=>x.remove());
+    Object.entries(featureInv).forEach(([k,v])=>{if(!v)return;const d=document.createElement('div');d.className='feature-count';d.style.cssText='grid-column:1/-1;color:#fff;background:#242824;border:1px solid #555;padding:5px;text-align:center';d.textContent=k+' × '+v;grid.appendChild(d)})
+  }
+
+  /* Working crafting table UI: 3x3 grid, simple wooden recipes and meat cooking placeholder. */
+  const invPanel=document.querySelector('#inventory .panel');
+  if(invPanel&&!$('craftBox')){
+    const box=document.createElement('div');box.id='craftBox';box.innerHTML='<b>🛠 Crafting Table</b><div id="craftGrid">'+Array.from({length:9},()=>'<button type="button"></button>').join('')+'</div><div id="craftOut"><span id="craftResult">نتیجه: —</span><button class="mcbtn green" id="craftBtn">Craft</button></div>';
+    invPanel.insertBefore(box,$('closeInv'));
+    box.querySelectorAll('#craftGrid button').forEach((b,i)=>b.onclick=()=>{b.textContent=b.textContent?'':'🪵'});
+    $('craftBtn').onclick=()=>{const n=box.querySelectorAll('#craftGrid button');const wood=[...n].filter(b=>b.textContent==='🪵').length;if(wood>=2){featureInv['Planks']=(featureInv['Planks']||0)+4;$('craftResult').textContent='نتیجه: 4 Planks';show('Craft شد');renderFeatureInventory()}else $('craftResult').textContent='حداقل 2 چوب لازم است'}
+  }
+
+  /* Survival selector immediately reveals hearts/food. */
+  $('survivalMode')?.addEventListener('click',()=>{hp=20;food=20;bars()});
+  $('creativeMode')?.addEventListener('click',bars);
+  setInterval(()=>{if(typeof started!=='undefined'&&started&&typeof gameMode!=='undefined'&&gameMode==='survival'){food=Math.max(0,food-.02);bars()}},1000);
+
+  /* Real online button: open the actual browser Minecraft client instead of only copying text. */
+  const join=$('armaJoin');
+  if(join)join.onclick=()=>{
+    const u=(typeof clean==='function'?clean():$('armaUser')?.value.trim())||'ArMaCrafter';
+    const url='https://mcraft.fun/?ip='+encodeURIComponent('ArMaCraftnet.aternos.me:60107')+'&name='+encodeURIComponent('ArMaCraft')+'&proxy='+encodeURIComponent('https://mainmet.onrender.com')+'&username='+encodeURIComponent(u);
+    window.open(url,'_blank','noopener');
+    if($('armaStatus'))$('armaStatus').textContent='کلاینت Minecraft Web باز شد؛ حالا Connect را بزن.';
+  };
+
+  /* Hook the animation loop without replacing the original loop. */
+  let last=performance.now();
+  function tick(t){const dt=Math.min(.05,(t-last)/1000);last=t;updateExtra(dt);requestAnimationFrame(tick)}
+  requestAnimationFrame(tick);
+  bars();
 })();
 </script>
 </body>
