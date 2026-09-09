@@ -1,0 +1,71 @@
+name: Improve game FPS
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'play.html'
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply safe performance optimizations
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p = Path('play.html')
+          s = p.read_text(encoding='utf-8')
+          old = s
+
+          # Lower the internal render resolution a little on high-DPI screens.
+          s = s.replace(
+              'renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.75))',
+              'renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.25))'
+          )
+          s = s.replace(
+              'renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))',
+              'renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25))'
+          )
+
+          # If the renderer is created with antialiasing, turn it off: this is a
+          # substantial GPU saving and is especially useful on weaker PCs/phones.
+          s = re.sub(
+              r'(new\\s+THREE\\.WebGLRenderer\\s*\\(\\s*\\{[^{}]*?)antialias\\s*:\\s*true',
+              r'\\1antialias:false',
+              s,
+              count=1,
+              flags=re.S
+          )
+
+          # Reduce expensive shadow-map resolution without removing shadows.
+          s = re.sub(r'(shadowMapSize\\s*=\\s*)2048', r'\\11024', s, count=1)
+          s = re.sub(r'(shadowMapSize\\s*=\\s*)4096', r'\\12048', s, count=1)
+
+          # Keep the FPS badge honest about the optimization.
+          marker = '/* MAINMET PERFORMANCE LITE */'
+          if marker not in s:
+              s = s.replace('</head>', '<style>'+marker+' canvas{image-rendering:auto}</style></head>', 1)
+
+          if s != old:
+              p.write_text(s, encoding='utf-8')
+          else:
+              print('No matching performance settings found; leaving game unchanged.')
+      - name: Commit optimization
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add play.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Optimize browser game FPS and reduce lag"
+          git push
