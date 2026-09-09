@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#111">
-<title>mainmet • Web Game 512</title>
+<title>mainmet • Web Game 2048</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#79c5ef;font-family:Tahoma,Arial,sans-serif;touch-action:none}
@@ -70,14 +70,19 @@ canvas{display:block;width:100%;height:100%}
 
 /* ===== Remember ArMaCraft online account ===== */
 .armaRemember{display:flex;align-items:center;gap:8px;margin:10px 0;padding:9px;background:#0e110e;border:1px solid #454b45;border-radius:4px;font-size:12px;color:#ddd}.armaRemember input{width:18px;height:18px;accent-color:#70a84f}
+
+.modeSelect{display:flex;gap:8px;margin:10px 0}.modeBtn{flex:1;padding:12px;border:2px solid #555;background:#292929;color:#fff;font-weight:900;border-radius:4px;cursor:pointer}.modeBtn.sel{border-color:#7bc37e;background:#315c36}
+#controlSettings{position:fixed;z-index:95;left:10px;top:90px;width:44px;height:38px;border:2px solid #555;border-radius:4px;background:#111c;color:#fff;font-weight:900}
+#controlsModal{position:fixed;inset:0;z-index:125;background:#000c;display:none;align-items:center;justify-content:center;padding:18px}#controlsModal.show{display:flex}.controlsBox{width:min(560px,94vw);max-height:90vh;overflow:auto;background:#151815;border:3px solid #555;box-shadow:0 24px 90px #000;color:#fff;padding:18px}.controlGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.controlRow{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#0e110e;border:1px solid #454b45;padding:8px;border-radius:4px}.controlRow input{width:100px;background:#090b09;color:#fff;border:1px solid #666;padding:7px;direction:ltr}
+@media(orientation:landscape) and (pointer:coarse){#joy{left:24px;bottom:26px}.break{right:98px;bottom:28px}.place{right:24px;bottom:28px}.look{right:24px;top:26px}.touchbtn{width:58px;height:58px}}
 </style>
 </head>
 <body>
 <div id="game"></div><div id="crosshair"></div>
-<div id="brand" class="badge">mainmet • WEB GAME 512</div>
+<div id="brand" class="badge">mainmet • WEB GAME 2048</div>
 <div id="coords" class="badge">0 / 0 / 0</div>
-<div id="fps" class="badge">512×512 TEXTURES</div>
-<button id="pauseBtn">Ⅱ</button>
+<div id="fps" class="badge">2048×2048 BLOCK TEXTURES • 1014×1014 MOB TEXTURES</div>
+<button id="pauseBtn">Ⅱ</button><button id="controlSettings" title="تنظیم دکمه‌ها">⚙</button>
 <div id="tip">برای شروع روی «شروع بازی» بزن<br>ZQSD حرکت • Space پرش • موس نگاه • کلیک چپ شکستن • کلیک راست گذاشتن</div>
 
 <div id="hotbar">
@@ -109,7 +114,8 @@ canvas{display:block;width:100%;height:100%}
 
 <div id="start"><div class="panel">
  <h1>mainmet</h1>
- <p>Web Game 512×512 — دنیای بلوکی سه‌بعدی با درخت، ماب، Inventory، فیزیک، نور و سایه.</p><div class="keys"><div class="key"><strong>Z Q S D</strong>حرکت</div><div class="key"><strong>SHIFT</strong>دویدن</div><div class="key"><strong>SPACE</strong>پرش</div><div class="key"><strong>E</strong>Inventory</div><div class="key"><strong>1–6</strong>بلوک</div><div class="key"><strong>ESC</strong>Pause</div><div class="key"><strong>Left</strong>شکستن</div><div class="key"><strong>Right</strong>گذاشتن</div><div class="key"><strong>R</strong>دنیای جدید</div><div class="key"><strong>W در Pause</strong>خروج</div></div>
+ <p>Web Game 2048×2048 — دنیای بلوکی سه‌بعدی با درخت، ماب، Inventory، فیزیک، نور و سایه.</p><div class="keys"><div class="key"><strong>Z Q S D</strong>حرکت</div><div class="key"><strong>SHIFT</strong>دویدن</div><div class="key"><strong>SPACE</strong>پرش</div><div class="key"><strong>E</strong>Inventory</div><div class="key"><strong>1–6</strong>بلوک</div><div class="key"><strong>ESC</strong>Pause</div><div class="key"><strong>Left</strong>شکستن</div><div class="key"><strong>Right</strong>گذاشتن</div><div class="key"><strong>R</strong>دنیای جدید</div><div class="key"><strong>W در Pause</strong>خروج</div></div>
+ <div class="modeSelect"><button class="modeBtn sel" id="survivalMode">🛡️ Survival</button><button class="modeBtn" id="creativeMode">🧱 Creative</button></div>
  <button class="mcbtn green" id="startBtn">🎮 شروع بازی</button>
  <button class="mcbtn" id="startFull">⛶ تمام صفحه</button>
  <p>PC: ZQSD • Shift دویدن • Space پرش • Mouse • کلیک چپ/راست • 1-6 • Esc<br>موبایل: جوی‌استیک و دکمه‌های لمسی</p>
@@ -143,6 +149,7 @@ canvas{display:block;width:100%;height:100%}
   </div>
 </div>
 
+<div id="controlsModal"><div class="controlsBox"><h2>⚙ تنظیم دکمه‌ها</h2><p>تنظیمات کامپیوتر و موبایل در همین مرورگر ذخیره می‌شود.</p><div class="controlGrid"><label class="controlRow"><span>جلو</span><input id="bindForward" value="Z" maxlength="12"></label><label class="controlRow"><span>چپ</span><input id="bindLeft" value="Q" maxlength="12"></label><label class="controlRow"><span>عقب</span><input id="bindBack" value="S" maxlength="12"></label><label class="controlRow"><span>راست</span><input id="bindRight" value="D" maxlength="12"></label><label class="controlRow"><span>پرش</span><input id="bindJump" value="Space" maxlength="12"></label><label class="controlRow"><span>Inventory</span><input id="bindInv" value="E" maxlength="12"></label></div><button class="mcbtn green" id="saveControls">ذخیره</button><button class="mcbtn" id="resetControls">پیش‌فرض</button><button class="mcbtn" id="closeControls">بستن</button></div></div>
 <div id="rotate"><div><div style="font-size:60px">📱↔️</div><h2>گوشی را افقی کن</h2><p>mainmet برای بازی در حالت افقی طراحی شده است.</p></div></div>
 
 <script type="module">
@@ -196,23 +203,23 @@ sun.shadow.camera.near=1;sun.shadow.camera.far=180;
 scene.add(sun);
 
 /* ---------- crisp pixel textures generated locally ---------- */
-function tex(base,accent,seed=1){
- const c=document.createElement("canvas");c.width=c.height=512;
+function tex(base,accent,seed=1,size=2048){
+ const c=document.createElement("canvas");c.width=c.height=size;
  const x=c.getContext("2d",{alpha:false});
  x.imageSmoothingEnabled=false;
- x.fillStyle=base;x.fillRect(0,0,256,256);
+ x.fillStyle=base;x.fillRect(0,0,c.width,c.height);
  let s=seed>>>0;
- for(let i=0;i<5200;i++){
+ for(let i=0;i<26000;i++){
   s=(s*1664525+1013904223)>>>0;
-  const px=s&255,py=(s>>>8)&255,sz=1+(s%4);
+  const px=s&(c.width-1),py=(s>>>8)&(c.height-1),sz=1+(s%8);
   x.globalAlpha=.18+(s%5)*.08;
   x.fillStyle=(s&1)?accent:base;
   x.fillRect(px,py,sz,sz);
  }
  x.globalAlpha=1;
- for(let i=0;i<800;i++){
+ for(let i=0;i<4000;i++){
   s=(s*1664525+1013904223)>>>0;
-  const px=s&255,py=(s>>>8)&255;
+  const px=s&(c.width-1),py=(s>>>8)&(c.height-1);
   x.fillStyle=(s&2)?"#ffffff":"#000000";
   x.globalAlpha=.045+(s%4)*.02;
   x.fillRect(px,py,1+(s%2),1+(s%2));
@@ -232,6 +239,8 @@ const grassTop=tex("#69aa4a","#4d8c3c",41);
 const woodTex=tex("#8b5b34","#704827",53);
 const leavesTex=tex("#3d803b","#2f6d32",61);
 const sandTex=tex("#cfb66d","#bca15b",73);
+const cowTex=tex("#6b472c","#3e2818",91,1014);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
 
 const sideMat=new THREE.MeshLambertMaterial({map:grassSide});
 const topMat=new THREE.MeshLambertMaterial({map:grassTop});
@@ -246,7 +255,7 @@ const materials={grass:grassM,dirt:dirtMat,stone:stoneMat,wood:woodMat,leaves:le
 const geo=new THREE.BoxGeometry(1,1,1);
 // Performance: one GPU instanced mesh per block type.
 const BLOCK_TYPES=["grass","dirt","stone","wood","leaves","sand"];
-const MAX_INSTANCES=12000;
+const MAX_INSTANCES=70000;
 const blockMeshes={},blockLists={},blocks=new Map();
 const key=(x,y,z)=>`${x},${y},${z}`;
 const dummy=new THREE.Object3D();
@@ -281,25 +290,51 @@ function heightAt(x,z){
  const c=Math.sin(x*.035+z*.045)*.45;
  return Math.max(2,Math.min(8,Math.round(4.1+a*.55+b*.55+c)));
 }
-for(let x=-30;x<=30;x++)for(let z=-30;z<=30;z++){
- const h=Math.max(2,heightAt(x,z));heights.set(key(x,0,z),h);
- for(let y=0;y<=h;y++)addBlock(x,y,z,y===h?"grass":y>=h-2?"dirt":"stone");
-}
-// Trees keep a minimum 7-block horizontal distance and never crowd spawn.
-const treeSpots=[];
-for(let x=-27;x<=27;x+=5)for(let z=-27;z<=27;z+=5){
- if(Math.hypot(x,z-8)<11)continue;
- if(rnd(x+4,z+8)>.72){
-  let ok=true;for(const t of treeSpots)if(Math.hypot(x-t.x,z-t.z)<7){ok=false;break;}if(!ok)continue;
-  treeSpots.push({x,z});const h=heightAt(x,z)+1;
-  for(let i=0;i<4;i++)addBlock(x,h+i,z,"wood");
-  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=1;dy<=3;dy++)if(Math.abs(dx)+Math.abs(dz)<4)addBlock(x+dx,h+dy,z+dz,"leaves");
+const CHUNK_SIZE=16,STREAM_RADIUS=2;
+const worldChunks=new Map();
+const editedBlocks=new Map();
+function chunkId(cx,cz){return `${cx},${cz}`}
+function chunkFor(x,z){return [Math.floor(x/CHUNK_SIZE),Math.floor(z/CHUNK_SIZE)]}
+function rememberEdit(x,y,z,type){editedBlocks.set(key(x,y,z),type===undefined?null:type)}
+function generateChunk(cx,cz){
+ const id=chunkId(cx,cz);if(worldChunks.has(id))return;
+ const list=[];worldChunks.set(id,list);
+ const put=(x,y,z,t)=>{addBlock(x,y,z,t);list.push(key(x,y,z));};
+ for(let lx=0;lx<CHUNK_SIZE;lx++)for(let lz=0;lz<CHUNK_SIZE;lz++){
+  const x=cx*CHUNK_SIZE+lx,z=cz*CHUNK_SIZE+lz,h=Math.max(2,heightAt(x,z));
+  heights.set(key(x,0,z),h);
+  for(let y=0;y<=h;y++){
+   const ek=key(x,y,z),et=editedBlocks.get(ek);
+   if(et===null)continue;
+   put(x,y,z,et|| (y===h?'grass':y>=h-2?'dirt':'stone'));
+  }
+ }
+ for(let lx=2;lx<CHUNK_SIZE-2;lx+=5)for(let lz=2;lz<CHUNK_SIZE-2;lz+=5){
+  const x=cx*CHUNK_SIZE+lx,z=cz*CHUNK_SIZE+lz;
+  if(Math.hypot(x,z-8)<11||rnd(x+4,z+8)>.72)continue;
+  const h=heightAt(x,z)+1;
+  for(let i=0;i<4;i++)put(x,h+i,z,'wood');
+  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=1;dy<=3;dy++)if(Math.abs(dx)+Math.abs(dz)<4)put(x+dx,h+dy,z+dz,'leaves');
  }
 }
-
+function unloadChunk(cx,cz){
+ const id=chunkId(cx,cz),list=worldChunks.get(id);if(!list)return;
+ for(const k of list){const b=blocks.get(k);if(b)removeBlock(b.x,b.y,b.z)}
+ worldChunks.delete(id);
+}
+function updateWorldStreaming(){
+ const [pcx,pcz]=chunkFor(player.feet.x,player.feet.z),wanted=new Set();
+ for(let dx=-STREAM_RADIUS;dx<=STREAM_RADIUS;dx++)for(let dz=-STREAM_RADIUS;dz<=STREAM_RADIUS;dz++){
+  const cx=pcx+dx,cz=pcz+dz;wanted.add(chunkId(cx,cz));generateChunk(cx,cz);
+ }
+ for(const id of [...worldChunks.keys()])if(!wanted.has(id)){
+  const [cx,cz]=id.split(',').map(Number);unloadChunk(cx,cz);
+ }
+}
+for(let cx=-2;cx<=2;cx++)for(let cz=-2;cz<=2;cz++)generateChunk(cx,cz);
 /* ---------- roaming mobs ---------- */
 const mobs=[];const bodyGeo=new THREE.BoxGeometry(.9,.62,1.25),headGeo=new THREE.BoxGeometry(.58,.55,.58),legGeo=new THREE.BoxGeometry(.18,.55,.18);
-function spawnMob(x,z,type){const g=new THREE.Group(),y=heightAt(Math.floor(x),Math.floor(z))+1;const bm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xe8e7df:0x6b472c}),hm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xd9d9d4:0x56371f});const b=new THREE.Mesh(bodyGeo,bm);b.position.y=.7;b.castShadow=false;g.add(b);const h=new THREE.Mesh(headGeo,hm);h.position.set(0,1.05,.72);h.castShadow=false;g.add(h);for(const sx of[-.3,.3])for(const sz of[-.42,.42]){const l=new THREE.Mesh(legGeo,new THREE.MeshLambertMaterial({color:0x333333}));l.position.set(sx,.25,sz);l.castShadow=false;g.add(l)}g.position.set(x+.5,y,z+.5);scene.add(g);mobs.push({g,phase:rnd(x+7,z+3)*6.28,speed:.25+rnd(x+2,z+8)*.3})}
+function spawnMob(x,z,type){const g=new THREE.Group(),y=heightAt(Math.floor(x),Math.floor(z))+1;const animalTex=type==='sheep'?sheepTex:cowTex;const bm=new THREE.MeshLambertMaterial({map:animalTex});const hm=new THREE.MeshLambertMaterial({map:animalTex});const b=new THREE.Mesh(bodyGeo,bm);b.position.y=.7;b.castShadow=false;g.add(b);const h=new THREE.Mesh(headGeo,hm);h.position.set(0,1.05,.72);h.castShadow=false;g.add(h);for(const sx of[-.3,.3])for(const sz of[-.42,.42]){const l=new THREE.Mesh(legGeo,new THREE.MeshLambertMaterial({color:0x333333}));l.position.set(sx,.25,sz);l.castShadow=false;g.add(l)}g.position.set(x+.5,y,z+.5);scene.add(g);mobs.push({g,phase:rnd(x+7,z+3)*6.28,speed:.25+rnd(x+2,z+8)*.3})}
 for(let i=0;i<16;i++){const x=Math.floor(rnd(i*13,5)*64-32),z=Math.floor(rnd(7,i*17)*64-32);if(Math.hypot(x,z-8)>12)spawnMob(x,z,i%2?'sheep':'cow')}
 function updateMobs(dt){for(const m of mobs){m.phase+=dt*m.speed;const dx=Math.sin(m.phase)*dt*m.speed*.9,dz=Math.cos(m.phase*.71)*dt*m.speed*.9;m.g.position.x+=dx;m.g.position.z+=dz;m.g.position.y=heightAt(Math.floor(m.g.position.x),Math.floor(m.g.position.z))+1;m.g.rotation.y=Math.atan2(dx,dz)}}
 
@@ -325,7 +360,7 @@ function axisMove(axis,amount){
  else if(axis==="y"){if(amount<0)player.onGround=true;player.vel.y=0}
 }
 const keys={};
-let yaw=0,pitch=0,selected=0,started=false,paused=false;
+let yaw=0,pitch=0,selected=0,started=false,paused=false,lastChunkX=999999,lastChunkZ=999999;let gameMode=localStorage.getItem("mainmet.gamemode")||"survival";
 
 function physics(dt){
  let f=(keys.KeyZ?1:0)-(keys.KeyS?1:0),s=(keys.KeyD?1:0)-(keys.KeyQ?1:0);
@@ -336,8 +371,7 @@ function physics(dt){
  const tx=(fw.x*f+rt.x*s)*speed,tz=(fw.z*f+rt.z*s)*speed;
  player.vel.x=THREE.MathUtils.damp(player.vel.x,tx,13,dt);
  player.vel.z=THREE.MathUtils.damp(player.vel.z,tz,13,dt);
- if((keys.Space||keys.KeyJ)&&player.onGround){player.vel.y=7;player.onGround=false}
- player.vel.y-=19*dt;player.onGround=false;
+ if(gameMode==="creative"){player.vel.y=0;if(keys.Space)player.feet.y+=8*dt;if(keys.ShiftLeft||keys.ShiftRight)player.feet.y-=8*dt;player.onGround=false}else{if((keys.Space||keys.KeyJ)&&player.onGround){player.vel.y=7;player.onGround=false}player.vel.y-=19*dt;player.onGround=false;}
  axisMove("x",player.vel.x*dt);axisMove("z",player.vel.z*dt);axisMove("y",player.vel.y*dt);
  if(player.feet.y<-10){player.feet.set(.5,spawnH+.02,8.5);player.vel.set(0,0,0)}
  camera.position.set(player.feet.x,player.feet.y+player.eye,player.feet.z);
@@ -370,17 +404,18 @@ function hit(){
  const type=h.object.__blockType,b=blockLists[type][h.instanceId];if(!b)return null;
  return {object:{userData:b},face:h.face,distance:h.distance};
 }
-function breakBlock(){const h=hit();if(!h)return;const p=h.object.userData;removeBlock(p.x,p.y,p.z);swing()}
+function breakBlock(){const h=hit();if(!h)return;const p=h.object.userData;removeBlock(p.x,p.y,p.z);rememberEdit(p.x,p.y,p.z,null);swing()}
 function placeBlock(){const h=hit();if(!h)return;const n=h.face.normal,p=h.object.userData;
  const x=p.x+Math.round(n.x),y=p.y+Math.round(n.y),z=p.z+Math.round(n.z);
  if(y<0||y>40||blocks.has(key(x,y,z)))return;
  // do not place a block intersecting the player's body
  if(x+.5>player.feet.x-player.radius&&x<player.feet.x+player.radius&&z+.5>player.feet.z-player.radius&&z<player.feet.z+player.radius&&y+1>player.feet.y&&y<player.feet.y+player.height)return;
- addBlock(x,y,z,["grass","dirt","stone","wood","leaves","sand"][selected]);swing();
+ const bt=["grass","dirt","stone","wood","leaves","sand"][selected];addBlock(x,y,z,bt);rememberEdit(x,y,z,bt);swing();
 }
 renderer.domElement.addEventListener("mousedown",e=>{if(!started||paused)return;if(e.button===0)breakBlock();if(e.button===2)placeBlock()});
 renderer.domElement.addEventListener("contextmenu",e=>e.preventDefault());
 
+document.getElementById("survivalMode").onclick=()=>{gameMode="survival";localStorage.setItem("mainmet.gamemode",gameMode);document.getElementById("survivalMode").classList.add("sel");document.getElementById("creativeMode").classList.remove("sel")};document.getElementById("creativeMode").onclick=()=>{gameMode="creative";localStorage.setItem("mainmet.gamemode",gameMode);document.getElementById("creativeMode").classList.add("sel");document.getElementById("survivalMode").classList.remove("sel")};if(gameMode==="creative"){document.getElementById("creativeMode").classList.add("sel");document.getElementById("survivalMode").classList.remove("sel")};
 document.getElementById("startBtn").onclick=()=>{
  started=true;document.getElementById("start").style.display="none";document.getElementById("tip").classList.add("hide");
  renderer.domElement.requestPointerLock?.();
@@ -419,13 +454,16 @@ let last=performance.now(),fc=0,ft=last;
 function loop(now){
  requestAnimationFrame(loop);
  const dt=Math.min(.05,(now-last)/1000);last=now;
- if(started&&!paused){physics(dt);updateMobs(dt);}
+ if(started&&!paused){physics(dt);updateMobs(dt);const cf=chunkFor(player.feet.x,player.feet.z);if(cf[0]!==lastChunkX||cf[1]!==lastChunkZ){lastChunkX=cf[0];lastChunkZ=cf[1];updateWorldStreaming();}}
  fc++;
  if(now-ft>1000){document.getElementById("fps").textContent=`${fc} FPS • ${Math.round(innerWidth)}×${Math.round(innerHeight)}`;fc=0;ft=now}
  if(fc%6===0)document.getElementById("coords").textContent=`${Math.floor(player.feet.x)} / ${Math.floor(player.feet.y)} / ${Math.floor(player.feet.z)}`;
  renderer.render(scene,camera);
 }
 loop(last);
+</script>
+<script>
+(function(){const m=document.getElementById("controlsModal");if(!m)return;const ids=["bindForward","bindLeft","bindBack","bindRight","bindJump","bindInv"];const d={bindForward:"Z",bindLeft:"Q",bindBack:"S",bindRight:"D",bindJump:"Space",bindInv:"E"};function load(){ids.forEach(id=>document.getElementById(id).value=localStorage.getItem("mainmet.bind."+id)||d[id])}load();document.getElementById("controlSettings").onclick=()=>{load();m.classList.add("show")};document.getElementById("closeControls").onclick=()=>m.classList.remove("show");document.getElementById("resetControls").onclick=()=>{ids.forEach(id=>localStorage.removeItem("mainmet.bind."+id));load()};document.getElementById("saveControls").onclick=()=>{ids.forEach(id=>localStorage.setItem("mainmet.bind."+id,document.getElementById(id).value.trim()||d[id]));m.classList.remove("show")}})();
 </script>
 <script>
 /* ===== mainmet ArMaCraft account/skin helper ===== */
