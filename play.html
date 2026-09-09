@@ -247,6 +247,8 @@ const cowTex=tex("#6b472c","#3e2818",91,1014);
 const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
 const cowTex=tex("#6b472c","#3e2818",91,1014);
 const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
+const cowTex=tex("#6b472c","#3e2818",91,1014);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
 
 const sideMat=new THREE.MeshLambertMaterial({map:grassSide});
 const topMat=new THREE.MeshLambertMaterial({map:grassTop});
@@ -446,7 +448,7 @@ joy.addEventListener("touchmove",e=>{
  const t=[...e.touches].find(v=>v.identifier===jid);if(!t)return;
  const dx=Math.max(-52,Math.min(52,t.clientX-jx)),dy=Math.max(-52,Math.min(52,t.clientY-jy));
  knob.style.transform=`translate(${dx}px,${dy}px)`;
- keys.KeyZ=dy<-12;keys.KeyS=dy>12;keys.KeyQ=dx<-12;keys.KeyD=dx>12;if(window.mainmetKeys){mainmetKeys[mainmetKeyFor("forward")]=dy<-12;mainmetKeys[mainmetKeyFor("back")]=dy>12;mainmetKeys[mainmetKeyFor("left")]=dx<-12;mainmetKeys[mainmetKeyFor("right")]=dx>12;}if(window.mainmetKeys){mainmetKeys[mainmetKeyFor("forward")]=dy<-12;mainmetKeys[mainmetKeyFor("back")]=dy>12;mainmetKeys[mainmetKeyFor("left")]=dx<-12;mainmetKeys[mainmetKeyFor("right")]=dx>12;}
+ keys.KeyZ=dy<-12;keys.KeyS=dy>12;keys.KeyQ=dx<-12;keys.KeyD=dx>12;if(window.mainmetKeys){mainmetKeys[mainmetKeyFor("forward")]=dy<-12;mainmetKeys[mainmetKeyFor("back")]=dy>12;mainmetKeys[mainmetKeyFor("left")]=dx<-12;mainmetKeys[mainmetKeyFor("right")]=dx>12;}if(window.mainmetKeys){mainmetKeys[mainmetKeyFor("forward")]=dy<-12;mainmetKeys[mainmetKeyFor("back")]=dy>12;mainmetKeys[mainmetKeyFor("left")]=dx<-12;mainmetKeys[mainmetKeyFor("right")]=dx>12;}if(window.mainmetKeys){mainmetKeys[mainmetKeyFor("forward")]=dy<-12;mainmetKeys[mainmetKeyFor("back")]=dy>12;mainmetKeys[mainmetKeyFor("left")]=dx<-12;mainmetKeys[mainmetKeyFor("right")]=dx>12;}
 },{passive:true});
 joy.addEventListener("touchend",()=>{jid=null;knob.style.transform="";keys.KeyZ=keys.KeyS=keys.KeyQ=keys.KeyD=false;if(window.mainmetKeys){mainmetKeys[mainmetKeyFor("forward")]=mainmetKeys[mainmetKeyFor("back")]=mainmetKeys[mainmetKeyFor("left")]=mainmetKeys[mainmetKeyFor("right")]=false}},{passive:true});
 
@@ -484,6 +486,24 @@ loop(last);
  const m=document.getElementById('controlsModal');if(!m)return;
  const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
  function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v.replace(/^Key/,'');}}
+ document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
+ document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
+ document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
+ document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
+})();
+</script>
+
+<script>
+(function(){
+ const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
+ window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
+ window.mainmetKeys={};
+ window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
+ addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
+ addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
+ const m=document.getElementById('controlsModal');if(!m)return;
+ const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
+ function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
  document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
  document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
  document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
