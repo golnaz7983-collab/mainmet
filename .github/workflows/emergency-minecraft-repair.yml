@@ -13,70 +13,58 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Repair play.html and add stable Minecraft-style systems
+      - name: Repair startup, rendering and systems
         shell: python
         run: |
           from pathlib import Path
-          import re
           p=Path('play.html')
           s=p.read_text(encoding='utf-8')
           old=s
-
-          # The browser module was a single point of failure. Use the classic Three.js build instead.
-          if 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js' not in s:
-              s=s.replace('<script type="module">\nimport * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";',
-                          '<script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>\n<script>')
-          s=s.replace('<script type="module">\nimport * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";','<script>')
+          s=s.replace('<script type="module">\nimport * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";','<script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>\n<script>')
           s=s.replace('renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));','renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.25));')
           s=s.replace(' antialias:true,',' antialias:false,',1)
           s=s.replace('sun.shadow.mapSize.set(2048,2048);','sun.shadow.mapSize.set(1024,1024);')
-
-          # Repair missing configurable-key helpers before physics can ever call them.
           if 'window.mainmetKeyFor' not in s:
-              marker='const keys={};'
-              inject='''const keys={};\nconst mainmetDefaults={forward:'Z',left:'Q',back:'S',right:'D',jump:'Space',inv:'E'};\nwindow.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||mainmetDefaults[name]};\nwindow.mainmetKeyDown=function(name){const k=String(mainmetKeyFor(name)||'').toUpperCase();return !!keys[k]||!!keys['Key'+k]||!!keys['Space']&&k==='SPACE'};'''
-              s=s.replace(marker,inject,1)
-
-          # Stable start bridge: the explanatory screen and both modes always have a working click path.
+              s=s.replace('const keys={};',"const keys={};\nconst mainmetDefaults={forward:'Z',left:'Q',back:'S',right:'D',jump:'Space',inv:'E'};\nwindow.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||mainmetDefaults[name]};\nwindow.mainmetKeyDown=function(name){const k=String(mainmetKeyFor(name)||'').toUpperCase();return !!keys[k]||!!keys['Key'+k]||(k==='SPACE'&&!!keys.Space)};",1)
+          # Expose engine objects to optional systems. This is intentionally inside the game script.
+          s=s.replace('const scene=new THREE.Scene();','const scene=new THREE.Scene();\nwindow.scene=scene;',1)
+          s=s.replace('const camera=new THREE.PerspectiveCamera(78,innerWidth/innerHeight,.05,220);','const camera=new THREE.PerspectiveCamera(78,innerWidth/innerHeight,.05,220);\nwindow.camera=camera;',1)
+          s=s.replace('const renderer=new THREE.WebGLRenderer({','const renderer=new THREE.WebGLRenderer({',1)
+          s=s.replace('document.getElementById("game").appendChild(renderer.domElement);','document.getElementById("game").appendChild(renderer.domElement);\nwindow.renderer=renderer;',1)
+          s=s.replace('const sun=new THREE.DirectionalLight(0xffffff,2.15);','const sun=new THREE.DirectionalLight(0xffffff,2.15);\nwindow.sun=sun;',1)
+          s=s.replace('const mobs=[];const bodyGeo=', 'const mobs=[];window.mobs=mobs;const bodyGeo=',1)
+          s=s.replace('const player={feet:', 'const player={feet:',1)
+          # player declaration ends with }; expose immediately after it.
+          s=s.replace('radius:.30,height:1.80,eye:1.62,onGround:false};','radius:.30,height:1.80,eye:1.62,onGround:false};\nwindow.player=player;',1)
+          s=s.replace('const oldStart=window.mainmetStartGame;','',1)
+          # Remove stale optional-system script if present, then append a corrected one.
+          import re
+          s=re.sub(r'<script id="MAINMET_SURVIVAL_SYSTEM">.*?</script>','',s,flags=re.S)
+          s=re.sub(r'<style id="MAINMET_MINIMAP">.*?<script id="MAINMET_MINIMAP_SCRIPT">.*?</script>','',s,flags=re.S)
+          system='''<script id="MAINMET_SURVIVAL_SYSTEM">\n(()=>{\n const boot=()=>{\n  if(!window.scene||!window.renderer||!window.camera)return;\n  const state=window.mainmetSurvival={health:20,maxHealth:20,time:120,dayLength:480,drops:[]};\n  const day=new THREE.Color(0x82c9f2),night=new THREE.Color(0x081225);\n  const geo=new THREE.BoxGeometry(.22,.22,.22);\n  const drop=(x,y,z,type)=>{const m=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:type==='meat'?0x9b3b2e:type==='wool'?0xe8e7df:0x69aa4a}));m.position.set(x,y,z);m.userData={life:0,type};scene.add(m);state.drops.push(m)};\n  window.mainmetDamageMob=(m,n=2)=>{if(!m||m.dead)return;m.hp=(m.hp??10)-n;if(m.g){m.g.scale.y=.82;setTimeout(()=>m.g&& (m.g.scale.y=1),90)}if(m.hp<=0&&m.g){const p=m.g.position.clone();scene.remove(m.g);m.dead=true;drop(p.x,p.y+.4,p.z,m.type==='cow'?'meat':'wool')}};\n  renderer.domElement.addEventListener('mousedown',e=>{if(e.button!==0||!window.started||window.paused)return;const r=new THREE.Raycaster();r.setFromCamera(new THREE.Vector2(0,0),camera);for(const m of (window.mobs||[])){if(!m.dead&&m.g){const h=r.intersectObject(m.g,true);if(h.length&&h[0].distance<7){window.mainmetDamageMob(m,2);break}}}});\n  (window.mobs||[]).forEach(m=>{m.hp=10});\n  function tick(){if(window.started&&!window.paused){state.time+=1/60;const ph=(state.time%state.dayLength)/state.dayLength;const a=Math.max(0,Math.sin(ph*Math.PI*2-Math.PI/2));scene.background=night.clone().lerp(day,a);if(window.sun){sun.intensity=.18+1.95*a;sun.position.set(Math.cos(ph*Math.PI*2)*60,20+55*a,Math.sin(ph*Math.PI*2)*60)}for(const d of state.drops){d.userData.life+=1/60;d.rotation.y+=.04;if(d.userData.life>45)scene.remove(d)}state.drops=state.drops.filter(d=>d.parent)}requestAnimationFrame(tick)}tick();\n };\n const w=setInterval(()=>{if(window.scene&&window.player){clearInterval(w);boot()}},200);\n})();\n</script>\n'''
+          mini='''<style id="MAINMET_MINIMAP">#mainmet-minimap{position:fixed;right:14px;top:98px;width:150px;height:150px;z-index:40;border:2px solid #555;background:#101510d9;image-rendering:pixelated;pointer-events:none}.mainmet-mp-title{position:fixed;right:18px;top:102px;z-index:41;color:#fff;font:700 10px Tahoma;text-shadow:2px 2px #000}</style><canvas id="mainmet-minimap" width="150" height="150"></canvas><div class="mainmet-mp-title">MAP</div><script id="MAINMET_MINIMAP_SCRIPT">(()=>{const c=document.getElementById('mainmet-minimap'),x=c.getContext('2d');function draw(){x.clearRect(0,0,150,150);x.fillStyle='#1c351d';x.fillRect(0,0,150,150);const p=window.player;if(p){for(let i=-7;i<=7;i++)for(let j=-7;j<=7;j++){const h=window.heightAt?heightAt(Math.floor(p.feet.x)+i,Math.floor(p.feet.z)+j):4;x.fillStyle=h>6?'#315c35':h<4?'#c5ad63':'#47763f';x.fillRect(75+i*7,75+j*7,6,6)}}x.fillStyle='#fff';x.fillRect(72,72,6,6);requestAnimationFrame(draw)}draw()})();</script>'''
           if 'MAINMET_EMERGENCY_START' not in s:
-              patch='''\n<script id="MAINMET_EMERGENCY_START">\n(()=>{\n  const ready=()=>{\n    const start=document.getElementById('start');\n    const btn=document.getElementById('startBtn');\n    if(!btn||btn.__emergencyBound)return;\n    btn.__emergencyBound=true;\n    btn.addEventListener('click',()=>{start&&(start.style.display='none');document.getElementById('tip')?.classList.add('hide')},{capture:true});\n    document.getElementById('survivalMode')?.addEventListener('click',()=>{localStorage.setItem('mainmet.gamemode','survival')});\n    document.getElementById('creativeMode')?.addEventListener('click',()=>{localStorage.setItem('mainmet.gamemode','creative')});\n  };\n  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();\n})();\n</script>\n'''
-              s=s.replace('</body>',patch+'</body>',1)
-
-          # Add Minecraft-style day/night, health, damage and item-drop systems.
-          if 'MAINMET_SURVIVAL_SYSTEM' not in s:
-              system=r'''\n<script id="MAINMET_SURVIVAL_SYSTEM">\n(()=>{\n  const boot=()=>{\n    if(!window.THREE||!window.scene||!window.renderer)return;\n    const state=window.mainmetSurvival={health:20,maxHealth:20,time:0,drops:[],mobs:[],dayLength:480};\n    const oldStart=window.mainmetStartGame;\n    const skyDay=new THREE.Color(0x82c9f2),skyNight=new THREE.Color(0x081225);\n    const dropGeo=new THREE.BoxGeometry(.22,.22,.22);\n    function drop(x,y,z,type){const m=new THREE.Mesh(dropGeo,new THREE.MeshLambertMaterial({color:type==='wood'?0x8b5b34:type==='stone'?0x777777:0x69aa4a}));m.position.set(x,y,z);m.userData={type,life:0};scene.add(m);state.drops.push(m)}\n    function damageMob(m,amount=2){if(!m||!m.g)return; m.hp=(m.hp??10)-amount; m.g.scale.y=.82; setTimeout(()=>m.g.scale.y=1,90); if(m.hp<=0){const p=m.g.position.clone();scene.remove(m.g);m.dead=true;drop(p.x,p.y+.3,p.z,m.type==='cow'?'meat':'wool')}}\n    window.mainmetDamageMob=damageMob;\n    const oldMousedown=renderer.domElement.onmousedown;\n    renderer.domElement.addEventListener('mousedown',e=>{if(e.button!==0)return;try{const r=new THREE.Raycaster();r.setFromCamera(new THREE.Vector2(0,0),camera);for(const m of (window.mobs||[])){if(m.g&&!m.dead){const h=r.intersectObject(m.g,true);if(h.length&&h[0].distance<7){damageMob(m,2);break}}}}catch(_){}});\n    const originalMobs=window.mobs; if(Array.isArray(originalMobs)){originalMobs.forEach(m=>{m.hp=10;state.mobs.push(m)})}\n    const animateSky=()=>{\n      const phase=(state.time%state.dayLength)/state.dayLength;\n      const sunA=Math.max(0,Math.sin(phase*Math.PI*2-Math.PI/2));\n      scene.background=skyNight.clone().lerp(skyDay,sunA);\n      if(window.sun){sun.intensity=.18+1.95*sunA;sun.position.set(Math.cos(phase*Math.PI*2)*60,20+55*sunA,Math.sin(phase*Math.PI*2)*60)}\n      if(window.renderer)renderer.toneMappingExposure=.72+.5*sunA;\n    };\n    const loop=()=>{if(window.started&&!window.paused){state.time+=1/60;animateSky();for(const d of state.drops){d.userData.life+=1/60;d.rotation.y+=.03;if(d.userData.life>45){scene.remove(d)}}state.drops=state.drops.filter(d=>d.parent)};requestAnimationFrame(loop)};\n    loop();\n  };\n  const wait=setInterval(()=>{if(window.scene&&window.renderer&&window.camera){clearInterval(wait);boot()}},250);\n})();\n</script>\n'''
-              s=s.replace('</body>',system+'</body>',1)
-
-          # Add a compact in-game minimap without touching the existing controls.
-          if 'MAINMET_MINIMAP' not in s:
-              mini=r'''\n<style id="MAINMET_MINIMAP">#mainmet-minimap{position:fixed;right:14px;top:98px;width:150px;height:150px;z-index:40;border:2px solid #555;background:#101510d9;image-rendering:pixelated;pointer-events:none}.mainmet-mp-title{position:fixed;right:18px;top:102px;z-index:41;color:#fff;font:700 10px Tahoma;text-shadow:2px 2px #000}</style>\n<canvas id="mainmet-minimap" width="150" height="150"></canvas><div class="mainmet-mp-title">MAP</div>\n<script id="MAINMET_MINIMAP_SCRIPT">\n(()=>{const c=document.getElementById('mainmet-minimap'),x=c.getContext('2d');function draw(){x.clearRect(0,0,150,150);x.fillStyle='#1c351d';x.fillRect(0,0,150,150);const p=window.player;if(p){x.fillStyle='#7bb35a';for(let i=-7;i<=7;i++)for(let j=-7;j<=7;j++){const wx=Math.floor(p.feet.x)+i,wz=Math.floor(p.feet.z)+j,h=Math.max(2,window.heightAt?heightAt(wx,wz):4);x.fillStyle=h>6?'#315c35':h<4?'#c5ad63':'#47763f';x.fillRect(75+i*7,75+j*7,6,6)}}x.fillStyle='#fff';x.fillRect(72,72,6,6);requestAnimationFrame(draw)}draw()})();\n</script>\n'''
-              s=s.replace('</body>',mini+'</body>',1)
-
-          # Accurate wording: do not claim official Minecraft textures are bundled.
+              start='''<script id="MAINMET_EMERGENCY_START">(()=>{const ready=()=>{const b=document.getElementById('startBtn'),st=document.getElementById('start');if(!b||b.__bound)return;b.__bound=true;b.addEventListener('click',()=>{if(st)st.style.display='none';document.getElementById('tip')?.classList.add('hide')},{capture:true});document.getElementById('survivalMode')?.addEventListener('click',()=>localStorage.setItem('mainmet.gamemode','survival'));document.getElementById('creativeMode')?.addEventListener('click',()=>localStorage.setItem('mainmet.gamemode','creative'))};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready()})();</script>'''
+              s=s.replace('</body>',start+'</body>',1)
+          s=s.replace('</body>',system+mini+'</body>',1)
           s=s.replace('4096×4096 BLOCK TEXTURES • 2048×2048 MOB TEXTURES','MINECRAFT-STYLE HD BLOCK TEXTURES • HD 3D MOBS')
-          s=s.replace('Web Game HD — دنیای بلوکی سه‌بعدی با درخت، ماب، Inventory، فیزیک، نور و سایه.','Minecraft-style survival — شب و روز، ماب، جان، ضربه، دراپ آیتم، اسکین سه‌بعدی، Inventory و جهان بلوکی.')
-
           if s!=old:p.write_text(s,encoding='utf-8')
-      - name: Validate HTML and JavaScript syntax
+      - name: Validate and commit
         shell: bash
         run: |
-          node --version
           python - <<'PY'
           from pathlib import Path
-          import re
           s=Path('play.html').read_text(encoding='utf-8')
-          assert s.count('const cowTex=') <= 1, 'duplicate cowTex'
-          assert s.count('const sheepTex=') <= 1, 'duplicate sheepTex'
-          assert 'id="startBtn"' in s, 'start button missing'
-          assert 'MAINMET_EMERGENCY_START' in s, 'start repair missing'
-          print('basic checks passed')
+          assert 'id="startBtn"' in s
+          assert s.count('const cowTex=') <= 1
+          assert s.count('const sheepTex=') <= 1
+          assert 'window.mainmetKeyDown' in s
+          assert 'window.scene=scene' in s
+          print('repair checks passed')
           PY
-      - name: Commit repair
-        shell: bash
-        run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add play.html .github/workflows/emergency-minecraft-repair.yml
-          if git diff --cached --quiet; then echo 'No changes'; exit 0; fi
-          git commit -m 'Repair game startup and add Minecraft-style survival systems'
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Stabilize startup and Minecraft-style survival systems'
           git push
