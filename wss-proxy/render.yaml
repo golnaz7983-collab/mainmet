@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: mainmet-arma-wss
+    runtime: node
+    rootDir: wss-proxy
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MC_HOST
+        value: ArMaCraftnet.aternos.me
+      - key: MC_PORT
+        value: "60107"
+      - key: WS_PATH
+        value: /arma
+      - key: ALLOWED_ORIGIN
+        value: https://golnaz7983-collab.github.io
