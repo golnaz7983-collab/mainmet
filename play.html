@@ -241,6 +241,8 @@ const leavesTex=tex("#3d803b","#2f6d32",61);
 const sandTex=tex("#cfb66d","#bca15b",73);
 const cowTex=tex("#6b472c","#3e2818",91,1014);
 const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
+const cowTex=tex("#6b472c","#3e2818",91,1014);
+const sheepTex=tex("#e8e7df","#b9b9b3",103,1014);
 
 const sideMat=new THREE.MeshLambertMaterial({map:grassSide});
 const topMat=new THREE.MeshLambertMaterial({map:grassTop});
@@ -363,7 +365,7 @@ const keys={};
 let yaw=0,pitch=0,selected=0,started=false,paused=false,lastChunkX=999999,lastChunkZ=999999;let gameMode=localStorage.getItem("mainmet.gamemode")||"survival";
 
 function physics(dt){
- let f=(keys.KeyZ?1:0)-(keys.KeyS?1:0),s=(keys.KeyD?1:0)-(keys.KeyQ?1:0);
+ let f=(mainmetKeyDown("forward")?1:0)-(mainmetKeyDown("back")?1:0),s=(mainmetKeyDown("right")?1:0)-(mainmetKeyDown("left")?1:0);
  const len=Math.hypot(f,s)||1;f/=len;s/=len;
  const speed=(keys.ShiftLeft||keys.ShiftRight)?7.5:4.9;
  const fw=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
@@ -371,7 +373,7 @@ function physics(dt){
  const tx=(fw.x*f+rt.x*s)*speed,tz=(fw.z*f+rt.z*s)*speed;
  player.vel.x=THREE.MathUtils.damp(player.vel.x,tx,13,dt);
  player.vel.z=THREE.MathUtils.damp(player.vel.z,tz,13,dt);
- if(gameMode==="creative"){player.vel.y=0;if(keys.Space)player.feet.y+=8*dt;if(keys.ShiftLeft||keys.ShiftRight)player.feet.y-=8*dt;player.onGround=false}else{if((keys.Space||keys.KeyJ)&&player.onGround){player.vel.y=7;player.onGround=false}player.vel.y-=19*dt;player.onGround=false;}
+ if(gameMode==="creative"){player.vel.y=0;if(mainmetKeyDown("jump"))player.feet.y+=8*dt;if(keys.ShiftLeft||keys.ShiftRight)player.feet.y-=8*dt;player.onGround=false}else{if((mainmetKeyDown("jump")||keys.KeyJ)&&player.onGround){player.vel.y=7;player.onGround=false}player.vel.y-=19*dt;player.onGround=false;}
  axisMove("x",player.vel.x*dt);axisMove("z",player.vel.z*dt);axisMove("y",player.vel.y*dt);
  if(player.feet.y<-10){player.feet.set(.5,spawnH+.02,8.5);player.vel.set(0,0,0)}
  camera.position.set(player.feet.x,player.feet.y+player.eye,player.feet.z);
@@ -464,6 +466,25 @@ loop(last);
 </script>
 <script>
 (function(){const m=document.getElementById("controlsModal");if(!m)return;const ids=["bindForward","bindLeft","bindBack","bindRight","bindJump","bindInv"];const d={bindForward:"Z",bindLeft:"Q",bindBack:"S",bindRight:"D",bindJump:"Space",bindInv:"E"};function load(){ids.forEach(id=>document.getElementById(id).value=localStorage.getItem("mainmet.bind."+id)||d[id])}load();document.getElementById("controlSettings").onclick=()=>{load();m.classList.add("show")};document.getElementById("closeControls").onclick=()=>m.classList.remove("show");document.getElementById("resetControls").onclick=()=>{ids.forEach(id=>localStorage.removeItem("mainmet.bind."+id));load()};document.getElementById("saveControls").onclick=()=>{ids.forEach(id=>localStorage.setItem("mainmet.bind."+id,document.getElementById(id).value.trim()||d[id]));m.classList.remove("show")}})();
+</script>
+
+<script>
+(function(){
+ const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
+ window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
+ window.mainmetKeyDown=function(name){return !!window.mainmetKeys?.[mainmetKeyFor(name)]};
+ window.mainmetKeys={};
+ addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
+ addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
+ const style=document.createElement('style');style.textContent='.bindHint{font-size:11px;color:#aaa}';document.head.appendChild(style);
+ const m=document.getElementById('controlsModal');if(!m)return;
+ const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
+ function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v.replace(/^Key/,'');}}
+ document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
+ document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
+ document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
+ document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
+})();
 </script>
 <script>
 /* ===== mainmet ArMaCraft account/skin helper ===== */
