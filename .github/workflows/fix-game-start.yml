@@ -1,3 +1,4 @@
+# v2
 name: Fix game start and texture sizes
 on:
   push:
@@ -66,20 +67,13 @@ jobs:
           /* ===== MAINMET_INDEX_START_FIX ===== */
           (function(){
             const f=document.getElementById('gameFrame');
-            const b=document.getElementById('startGame') || document.querySelector('[onclick*="mainmetStartGame"]');
             let ready=false, pending=false;
-            function send(){
-              if(!f || !f.contentWindow) return;
-              try{ f.contentWindow.postMessage({type:'mainmet-start-game'},'*'); }catch(e){}
-            }
+            function send(){ if(f?.contentWindow) f.contentWindow.postMessage({type:'mainmet-start-game'},'*'); }
             if(f){
               f.addEventListener('load',function(){ ready=true; if(pending){pending=false; setTimeout(send,80);} });
-              window.addEventListener('message',function(e){ if(e.source===f.contentWindow && e.data && e.data.type==='mainmet-ready'){ready=true; if(pending){pending=false; setTimeout(send,30);} } });
+              window.addEventListener('message',function(e){ if(e.source===f.contentWindow && e.data?.type==='mainmet-ready'){ready=true; if(pending){pending=false; setTimeout(send,30);} } });
             }
-            window.mainmetStartGame=function(){
-              if(!f) return;
-              if(ready) send(); else { pending=true; try{f.contentWindow.postMessage({type:'mainmet-start-game'},'*');}catch(e){} }
-            };
+            window.mainmetStartGame=function(){ if(!f)return; if(ready)send(); else {pending=true; setTimeout(send,0);} };
           })();
           </script>'''
               s=s.replace('</body>',patch+'\n</body>')
