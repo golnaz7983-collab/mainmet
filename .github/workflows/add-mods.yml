@@ -1,0 +1,66 @@
+name: Add mainmet mods
+on:
+  push:
+    paths:
+      - '.github/workflows/add-mods.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  mods:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch browser game with mods
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('play.html')
+          s=p.read_text(encoding='utf-8')
+          marker='/* MAINMET MOD PACK v1 */'
+          if marker not in s:
+              css=r'''<style id="mainmet-mod-pack">/* MAINMET MOD PACK v1 */
+#modPlus{position:fixed;z-index:100;right:10px;top:95px;width:42px;height:42px;border:2px solid #777;background:#222d;color:#fff;border-radius:6px;font-size:24px;font-weight:900;cursor:pointer;box-shadow:0 3px 10px #0008}
+#modMenu{position:fixed;z-index:101;right:10px;top:143px;width:min(310px,calc(100vw - 20px));background:#151815f5;border:2px solid #555;border-radius:7px;padding:12px;display:none;box-shadow:0 15px 60px #000c;color:#fff;font-family:Tahoma,Arial,sans-serif}
+#modMenu.show{display:block}.modTitle{font-weight:1000;font-size:18px;margin-bottom:10px}.modItem{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid #484d48;background:#202420;margin:7px 0;border-radius:5px}.modItem small{display:block;color:#aaa;margin-top:3px}.modToggle{width:44px;height:24px;border:1px solid #777;border-radius:20px;background:#333;position:relative;cursor:pointer}.modToggle:after{content:"";position:absolute;width:18px;height:18px;top:2px;left:2px;border-radius:50%;background:#bbb;transition:.15s}.modToggle.on{background:#527b3b}.modToggle.on:after{left:22px;background:#fff}
+#mainmetMinimap{position:fixed;z-index:40;right:12px;top:10px;width:150px;height:150px;border:3px solid #111;background:#172017e8;box-shadow:0 4px 20px #0008;border-radius:4px;display:none}#mainmetMinimap.show{display:block}.miniLabel{position:absolute;right:4px;bottom:3px;color:#fff;font:10px Tahoma;text-shadow:1px 1px #000}
+#modHint{position:fixed;z-index:45;left:50%;top:72px;transform:translateX(-50%);padding:6px 10px;background:#111d;border:1px solid #666;border-radius:4px;color:#fff;font:11px Tahoma;opacity:0;pointer-events:none;transition:.2s}#modHint.show{opacity:1}
+#spearModel,#pillowModel{position:fixed;z-index:30;right:5%;bottom:0;pointer-events:none;display:none;filter:drop-shadow(4px 6px 3px #0008)}#spearModel.show,#pillowModel.show{display:block}.spearStick{width:8px;height:170px;background:linear-gradient(90deg,#5a3920,#b47a42,#4b301b);transform:rotate(-12deg);position:absolute;right:42px;bottom:5px}.spearTip{width:30px;height:45px;background:linear-gradient(135deg,#ddd,#777);clip-path:polygon(50% 0,100% 100%,50% 76%,0 100%);position:absolute;right:32px;bottom:164px;transform:rotate(-12deg)}.pillow{width:100px;height:72px;border-radius:18px;background:linear-gradient(145deg,#eee,#aaa);border:3px solid #666;box-shadow:inset 8px 8px #fff8,inset -8px -8px #0003;transform:rotate(-12deg)}
+</style>'''
+              html=r'''<button id="modPlus" title="مودها">＋</button>
+<div id="modMenu"><div class="modTitle">🧩 مودهای mainmet</div>
+<div class="modItem"><div>🌄 واقعی‌گرایانه<small>نور، رنگ و افکت تصویری</small></div><button class="modToggle" data-mod="realistic"></button></div>
+<div class="modItem"><div>🔱 مود نیزه<small>نیزه برای نمایش در دست</small></div><button class="modToggle" data-mod="spear"></button></div>
+<div class="modItem"><div>🛏️ مود بالشت<small>بالشت قابل انتخاب در دست</small></div><button class="modToggle" data-mod="pillow"></button></div>
+<div class="modItem"><div>🗺️ مینی‌مپ<small>موقعیت و جهت بازیکن</small></div><button class="modToggle" data-mod="minimap"></button></div></div>
+<canvas id="mainmetMinimap" width="300" height="300"></canvas><div id="modHint">مود فعال شد</div><div id="spearModel"><div class="spearStick"></div><div class="spearTip"></div></div><div id="pillowModel"><div class="pillow"></div></div>'''
+              js=r'''<script id="mainmet-mod-script">(()=>{
+const plus=document.getElementById('modPlus'),menu=document.getElementById('modMenu'); if(!plus||!menu)return;
+plus.onclick=()=>menu.classList.toggle('show');
+const state=JSON.parse(localStorage.getItem('mainmet.mods')||'{}');
+const hint=t=>{const h=document.getElementById('modHint');h.textContent=t;h.classList.add('show');clearTimeout(h._t);h._t=setTimeout(()=>h.classList.remove('show'),1200)};
+function apply(n,on){state[n]=on;localStorage.setItem('mainmet.mods',JSON.stringify(state));
+ if(n==='realistic') document.documentElement.style.filter=on?'saturate(1.08) contrast(1.04) brightness(1.02)':'';
+ if(n==='spear'){document.getElementById('spearModel').classList.toggle('show',on); if(on)document.getElementById('pillowModel').classList.remove('show');}
+ if(n==='pillow'){document.getElementById('pillowModel').classList.toggle('show',on); if(on)document.getElementById('spearModel').classList.remove('show');}
+ if(n==='minimap'){document.getElementById('mainmetMinimap').classList.toggle('show',on);}
+ document.querySelectorAll('.modToggle').forEach(b=>b.classList.toggle('on',!!state[b.dataset.mod])); if(on)hint('✓ مود فعال شد');}
+menu.querySelectorAll('.modToggle').forEach(b=>b.onclick=()=>apply(b.dataset.mod,!state[b.dataset.mod]));
+Object.keys(state).forEach(n=>{if(state[n])apply(n,true)});
+const mm=document.getElementById('mainmetMinimap'),ctx=mm.getContext('2d');
+function mini(){if(!state.minimap)return; const w=mm.width,h=mm.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#243b22';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#63715d';ctx.lineWidth=2;for(let x=0;x<w;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}for(let y=0;y<h;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(w/2,h/2,7,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e66';ctx.fillRect(w/2-2,12,4,22);}
+setInterval(mini,500);
+})();</script>'''
+              s=s.replace('</head>',css+'</head>',1)
+              s=s.replace('<body>', '<body>'+html,1)
+              s=s.replace('</body>',js+'</body>',1)
+              p.write_text(s,encoding='utf-8')
+      - name: Commit mod pack
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add play.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Add realistic spear pillow and minimap mods'
+          git push
