@@ -1,0 +1,34 @@
+name: Set ArMaCraft WSS endpoint
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set default WSS endpoint
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('play.html')
+          s=p.read_text(encoding='utf-8')
+          old="wss.value=localStorage.getItem('mainmet.arma.wss')||'';"
+          new="wss.value=localStorage.getItem('mainmet.arma.wss')||'wss://mainmet.onrender.com/arma';"
+          if old in s:
+              s=s.replace(old,new,1)
+          elif "wss.value=localStorage.getItem('mainmet.arma.wss')||'wss://mainmet.onrender.com/arma';" not in s:
+              raise SystemExit('ArMaCraft WSS setting line not found')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add play.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Set ArMaCraft WSS endpoint"
+          git push
