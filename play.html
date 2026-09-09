@@ -906,5 +906,28 @@ loop(last);
   bars();
 })();
 </script>
+
+<script>
+/* MAINMET_SURVIVAL_REPAIR_V2 */
+(()=>{
+ const surv=document.getElementById('survivalMode');
+ const creative=document.getElementById('creativeMode');
+ const start=document.querySelector('#start .mcbtn.green')||document.getElementById('startBtn');
+ let mode=localStorage.getItem('mainmet.gamemode')||'survival';
+ function select(m){mode=m;localStorage.setItem('mainmet.gamemode',m);
+   if(surv) surv.classList.toggle('sel',m==='survival');
+   if(creative) creative.classList.toggle('sel',m==='creative');
+   window.mainmetGameMode=m;
+   window.dispatchEvent(new CustomEvent('mainmet-mode-change',{detail:{mode:m}}));
+ }
+ if(surv) surv.addEventListener('click',()=>select('survival'),true);
+ if(creative) creative.addEventListener('click',()=>select('creative'),true);
+ select(mode);
+ if(start) start.addEventListener('click',()=>{
+   const tip=document.getElementById('tip'); if(tip) tip.classList.add('hide');
+   const overlay=document.getElementById('start'); if(overlay) overlay.style.display='none';
+ },true);
+})();
+</script>
 </body>
 </html>

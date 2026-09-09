@@ -1,0 +1,14 @@
+{
+  "name": "mainmet",
+  "short_name": "mainmet",
+  "description": "mainmet Web Game",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#79c5ef",
+  "theme_color": "#111111",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}

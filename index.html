@@ -18,7 +18,11 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.09;ba
 footer{text-align:center;color:#777;padding:30px 10px;font-size:11px}.footlinks{display:flex;justify-content:center;gap:15px;flex-wrap:wrap;margin-top:8px}.footlinks a{color:#aaa;text-decoration:none}
 @media(max-width:760px){.grid,.row,.kv,.buttons{grid-template-columns:1fr}.server{align-items:flex-start;flex-direction:column}.top{height:58px}.menu{margin-top:25px}.panel{padding:16px}.top-right .chip:first-child{display:none}}
 @media(max-width:850px) and (orientation:landscape){.top{height:48px}.menu{margin-top:15px}.title{font-size:44px}.subtitle{margin-bottom:12px}.buttons{grid-template-columns:repeat(3,1fr);gap:7px}.mcbtn{min-height:42px;font-size:11px}.panel{margin-top:14px;padding:14px}}
-</style></head>
+</style>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#111111">
+<style>#mainmet-pwa-install{position:fixed;right:18px;bottom:18px;z-index:99999;border:2px solid #fff;background:linear-gradient(#70a84f,#456e31);color:#fff;border-radius:8px;padding:12px 16px;font-weight:900;box-shadow:0 6px 24px #0008;cursor:pointer}#mainmet-pwa-install.hide{display:none}</style>
+</head>
 <body>
 <header class="top"><div class="logo">⛏ mainmet <span>MINECRAFT JAVA 26.2 • MULTIPLAYER HUB</span></div><div class="top-right"><span class="chip"><span class="status-dot"></span> سیستم آماده</span><span class="chip" id="userChip">👤 مهمان</span></div></header>
 <main class="menu">
@@ -175,6 +179,21 @@ mergeCustom();loadSettings();renderIran();
     if(!f) return;
     if(ready) send(); else { pending=true; try{f.contentWindow.postMessage({type:'mainmet-start-game'},'*');}catch(e){} }
   };
+})();
+</script>
+
+<button id="mainmet-pwa-install" class="hide">💻 افزودن mainmet به صفحه لپ‌تاپ</button>
+<script>
+(()=>{
+ let deferredPrompt=null;
+ const btn=document.getElementById('mainmet-pwa-install');
+ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;btn.classList.remove('hide')});
+ btn.addEventListener('click',async()=>{
+   if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;btn.classList.add('hide')}
+   else alert('اگر گزینه نصب نمایش داده نشد، از منوی ⋮ مرورگر گزینه Install app / نصب برنامه را بزن.');
+ });
+ window.addEventListener('appinstalled',()=>btn.classList.add('hide'));
+ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
 </script>
 </body></html>
