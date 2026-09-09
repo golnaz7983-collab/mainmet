@@ -65,10 +65,10 @@ wss.on("connection", (ws) => {
 
   mc.setTimeout(30000);
   mc.on("connect", () => {
-    if (ws.readyState === ws.OPEN) ws.send(JSON.stringify({ type: "proxy", status: "connected" }));
+    if (ws.readyState === 1) ws.send(JSON.stringify({ type: "proxy", status: "connected" }));
   });
   mc.on("data", data => {
-    if (ws.readyState === ws.OPEN) ws.send(data, { binary: true });
+    if (ws.readyState === 1) ws.send(data, { binary: true });
   });
   mc.on("timeout", closeBoth);
   mc.on("error", closeBoth);
@@ -82,9 +82,9 @@ wss.on("connection", (ws) => {
     }
     try {
       const msg = JSON.parse(data.toString());
-      if (msg?.type === "ping") ws.send(JSON.stringify({ type: "pong" }));
+      if (msg?.type === "ping" && ws.readyState === 1) ws.send(JSON.stringify({ type: "pong" }));
     } catch {
-      // Ignore non-binary control text. Minecraft traffic must be binary.
+      // Minecraft traffic must be binary.
     }
   });
 
