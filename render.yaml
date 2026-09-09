@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: armacraft-wss-proxy
+    runtime: node
+    plan: free
+    buildCommand: cd render-proxy && npm install --omit=dev
+    startCommand: cd render-proxy && npm start
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: MC_HOST
+        value: ArMaCraftnet.aternos.me
+      - key: MC_PORT
+        value: "60107"
+      - key: ALLOWED_ORIGIN
+        value: https://golnaz7983-collab.github.io
+      - key: MAX_CONNECTIONS
+        value: "12"
