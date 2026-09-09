@@ -108,4 +108,53 @@ function saveSettings(){localStorage.setItem('mainmet_graphics',document.getElem
 function toggleSound(){soundOn=!soundOn;localStorage.setItem('mainmet_sound',soundOn?'1':'0');document.getElementById('soundBtn').textContent=soundOn?'🔊 روشن':'🔇 خاموش';toast(soundOn?'صدا روشن شد':'صدا خاموش شد')}
 function mergeCustom(){const c=JSON.parse(localStorage.getItem('mainmet_custom_servers')||'[]');c.forEach(x=>{if(!iranServers.some(y=>y.ip.toLowerCase()===x.ip.toLowerCase()))iranServers.push(x)})}
 mergeCustom();loadSettings();renderIran();
-</script></body></html>
+</script><style id="mainmet-ui-fixes">
+.player-controls-btn{margin-top:10px;width:100%;padding:12px;border:2px solid #555;background:linear-gradient(#333,#1d1d1d);color:#fff;font-weight:900;border-radius:4px;cursor:pointer}.player-controls-btn:hover{filter:brightness(1.12)}
+#playerControlsModal{position:fixed;inset:0;z-index:9999;background:#000c;display:none;align-items:center;justify-content:center;padding:16px}#playerControlsModal.show{display:flex}.player-controls-box{width:min(680px,96vw);max-height:92vh;overflow:auto;background:#151815;border:3px solid #555;box-shadow:0 24px 90px #000;color:#fff;padding:20px;border-radius:6px}.player-controls-box h2{margin:0 0 8px}.pc-tabs{display:flex;gap:8px;margin:12px 0}.pc-tabs button{flex:1;padding:10px;background:#292929;color:#fff;border:2px solid #555;border-radius:4px;font-weight:900}.pc-tabs button.sel{background:#315c36;border-color:#7bc37e}.pc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pc-row{display:grid;grid-template-columns:1fr 110px;align-items:center;gap:8px;background:#0e110e;border:1px solid #454b45;padding:8px;border-radius:4px}.pc-row input{width:100%;background:#090b09;color:#fff;border:1px solid #666;padding:8px;border-radius:3px;text-align:center;direction:ltr}.pc-actions{display:flex;gap:8px;margin-top:12px}.pc-actions button{flex:1;padding:11px;border:2px solid #333;background:#444;color:#fff;border-radius:4px;font-weight:900}.pc-actions .ok{background:#456e31}@media(max-width:650px){.pc-grid{grid-template-columns:1fr}.pc-row{grid-template-columns:1fr 90px}}
+</style><div id="playerControlsModal"><div class="player-controls-box" dir="rtl"><h2>🎮 تنظیم دکمه‌های بازیکن</h2><div class="muted">هر بازیکن می‌تواند تنظیمات خودش را روی همین دستگاه ذخیره کند. برای گوشی، کنترل لمسی؛ برای کامپیوتر، صفحه‌کلید.</div><div class="pc-tabs"><button id="pcTabComputer" class="sel">🖥️ کامپیوتر</button><button id="pcTabMobile">📱 گوشی</button></div><div id="pcComputer" class="pc-grid"></div><div id="pcMobile" style="display:none"><div class="notice">برای گوشی جای جوی‌استیک و دکمه‌های پرش، شکستن، گذاشتن و نگاه را می‌توانی تنظیم کنی.</div><div class="pc-grid" id="pcMobileGrid"></div></div><div class="pc-actions"><button id="pcReset">↺ بازنشانی</button><button id="pcClose">بستن</button><button id="pcSave" class="ok">✓ ذخیره</button></div></div></div><script id="mainmet-ui-fixes-script">
+(function(){
+  const KEYS={forward:'Z',left:'Q',back:'S',right:'D',jump:'Space',inventory:'E',break:'MouseLeft',place:'MouseRight'};
+  const MOBILE={joystick:'جوی‌استیک سمت چپ',jump:'پرش سمت راست',break:'شکستن بلوک',place:'گذاشتن بلوک',look:'نگاه/چرخش'};
+  const get=(k,d)=>localStorage.getItem('mainmet.player.'+k)||d;
+  const set=(k,v)=>localStorage.setItem('mainmet.player.'+k,v);
+  function addButton(){
+    if(document.getElementById('mainmetPlayerControlsBtn')) return;
+    const b=document.createElement('button'); b.id='mainmetPlayerControlsBtn'; b.className='mcbtn player-controls-btn'; b.textContent='🎮 تنظیم دکمه‌های بازیکن';
+    b.onclick=()=>document.getElementById('playerControlsModal').classList.add('show');
+    const buttons=document.querySelector('.buttons'); if(buttons) buttons.appendChild(b);
+  }
+  function setup(){
+    addButton();
+    const modal=document.getElementById('playerControlsModal'); if(!modal) return;
+    const cg=document.getElementById('pcComputer'), mg=document.getElementById('pcMobileGrid');
+    const labels={forward:'حرکت جلو',left:'حرکت چپ',back:'حرکت عقب',right:'حرکت راست',jump:'پرش',inventory:'کیف/Inventory',break:'شکستن',place:'گذاشتن'};
+    cg.innerHTML=Object.keys(labels).map(k=>`<label class="pc-row"><span>${labels[k]}</span><input data-k="${k}" value="${get(k,KEYS[k])}"></label>`).join('');
+    mg.innerHTML=Object.keys(MOBILE).map(k=>`<label class="pc-row"><span>${MOBILE[k]}</span><input data-m="${k}" value="${get('mobile.'+k,k)}"></label>`).join('');
+    document.getElementById('pcTabComputer').onclick=()=>{document.getElementById('pcComputer').style.display='grid';document.getElementById('pcMobile').style.display='none';document.getElementById('pcTabComputer').classList.add('sel');document.getElementById('pcTabMobile').classList.remove('sel')};
+    document.getElementById('pcTabMobile').onclick=()=>{document.getElementById('pcComputer').style.display='none';document.getElementById('pcMobile').style.display='block';document.getElementById('pcTabMobile').classList.add('sel');document.getElementById('pcTabComputer').classList.remove('sel')};
+    document.getElementById('pcClose').onclick=()=>modal.classList.remove('show');
+    document.getElementById('pcReset').onclick=()=>{Object.keys(KEYS).forEach(k=>set(k,KEYS[k]));Object.keys(MOBILE).forEach(k=>set('mobile.'+k,k));setup()};
+    document.getElementById('pcSave').onclick=()=>{cg.querySelectorAll('[data-k]').forEach(i=>set(i.dataset.k,i.value.trim()||KEYS[i.dataset.k]));mg.querySelectorAll('[data-m]').forEach(i=>set('mobile.'+i.dataset.m,i.value.trim()||i.dataset.m)); try{const f=document.getElementById('gameFrame');f.contentWindow.postMessage({type:'mainmet-control-settings',settings:Object.fromEntries(Object.keys(KEYS).map(k=>[k,get(k,KEYS[k])]))},'*')}catch(e){}; modal.classList.remove('show')};
+  }
+  window.addEventListener('DOMContentLoaded',setup);
+  setTimeout(setup,500);
+  // Reliable game launch bridge: the main page tells the iframe to start/resume without destroying the offline game.
+  window.mainmetStartGame=function(){
+    const f=document.getElementById('gameFrame'); if(!f)return;
+    try{f.contentWindow.postMessage({type:'mainmet-start-game'},'*')}catch(e){}
+    try{f.contentWindow.focus()}catch(e){}
+    const p=document.getElementById('play'); if(p && typeof window.openPanel==='function') window.openPanel('play');
+  };
+  window.openBrowserGame=function(){
+    const f=document.getElementById('gameFrame'); if(!f)return;
+    window.mainmetStartGame();
+    if(f.requestFullscreen) f.requestFullscreen().catch(()=>{});
+  };
+  window.openExternalGame=function(){window.open('play.html','_blank','noopener');};
+  window.addEventListener('message',e=>{if(e.data&&e.data.type==='mainmet-ready') window.mainmetStartGame()});
+  // Make the primary play button explicitly start the game.
+  setTimeout(()=>{document.querySelectorAll('.hero-play').forEach(b=>{if(!b.dataset.startFixed){b.dataset.startFixed='1';b.textContent='▶️ شروع بازی';b.onclick=window.mainmetStartGame;}})},700);
+})();
+</script>
+<!-- MAINMET_UI_FIXES_V2 -->
+</body></html>
