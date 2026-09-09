@@ -9,14 +9,14 @@ s = s.replace('mainmet • WEB GAME 512', 'mainmet • WEB GAME 2048')
 s = s.replace('512×512 TEXTURES', '2048×2048 BLOCK TEXTURES • 1014×1014 MOB TEXTURES')
 s = s.replace('Web Game 512×512', 'Web Game 2048×2048')
 
-# Texture resolution: block textures default to 2048; mobs can use a custom size.
+# Texture resolution: blocks use 2048, mobs use 1014.
 s = s.replace('function tex(base,accent,seed=1){', 'function tex(base,accent,seed=1,size=2048){')
 s = s.replace('c.width=c.height=512;', 'c.width=c.height=size;')
 s = s.replace('x.fillRect(0,0,256,256);', 'x.fillRect(0,0,c.width,c.height);')
 s = s.replace('for(let i=0;i<5200;i++){', 'for(let i=0;i<26000;i++){', 1)
-s = s.replace('const px=s&255,py=(s>>>8)&255,sz=1+(s%4);', 'const px=s&(c.width-1),py=(s>>>8)&(c.height-1),sz=1+(s%8);', 1)
+s = s.replace('const px=s&255,py=(s>>>8)&255,sz=1+(s%4);', 'const px=s%c.width,py=(s>>>8)%c.height,sz=1+(s%8);', 1)
 s = s.replace('for(let i=0;i<800;i++){', 'for(let i=0;i<4000;i++){', 1)
-s = s.replace('const px=s&255,py=(s>>>8)&255;', 'const px=s&(c.width-1),py=(s>>>8)&(c.height-1);', 1)
+s = s.replace('const px=s&255,py=(s>>>8)&255;', 'const px=s%c.width,py=(s>>>8)%c.height;', 1)
 s = s.replace('const MAX_INSTANCES=12000;', 'const MAX_INSTANCES=70000;')
 
 # Infinite deterministic chunk streaming, with edits preserved while chunks unload/reload.
@@ -88,7 +88,7 @@ if '.modeSelect{' not in s:
 if 'id="controlSettings"' not in s:
     s = s.replace('<button id="pauseBtn">Ⅱ</button>', '<button id="pauseBtn">Ⅱ</button><button id="controlSettings" title="تنظیم دکمه‌ها">⚙</button>')
 
-controls = '''<div id="controlsModal"><div class="controlsBox"><h2>⚙ تنظیم دکمه‌ها</h2><p>تنظیمات کامپیوتر و موبایل در همین مرورگر ذخیره می‌شود.</p><div class="controlGrid"><label class="controlRow"><span>جلو</span><input id="bindForward" value="Z" maxlength="12"></label><label class="controlRow"><span>چپ</span><input id="bindLeft" value="Q" maxlength="12"></label><label class="controlRow"><span>عقب</span><input id="bindBack" value="S" maxlength="12"></label><label class="controlRow"><span>راست</span><input id="bindRight" value="D" maxlength="12"></label><label class="controlRow"><span>پرش</span><input id="bindJump" value="Space" maxlength="12"></label><label class="controlRow"><span>Inventory</span><input id="bindInv" value="E" maxlength="12"></label></div><button class="mcbtn green" id="saveControls">ذخیره</button><button class="mcbtn" id="resetControls">پیش‌فرض</button><button class="mcbtn" id="closeControls">بستن</button></div></div>
+controls = '''<div id="controlsModal"><div class="controlsBox"><h2>⚙ تنظیم دکمه‌ها</h2><p>کلیدهای کامپیوتر را تغییر بده؛ کنترل لمسی گوشی نیز از همین تنظیمات حرکت استفاده می‌کند.</p><div class="controlGrid"><label class="controlRow"><span>جلو</span><input id="bindForward" value="Z" maxlength="12"></label><label class="controlRow"><span>چپ</span><input id="bindLeft" value="Q" maxlength="12"></label><label class="controlRow"><span>عقب</span><input id="bindBack" value="S" maxlength="12"></label><label class="controlRow"><span>راست</span><input id="bindRight" value="D" maxlength="12"></label><label class="controlRow"><span>پرش</span><input id="bindJump" value="Space" maxlength="12"></label><label class="controlRow"><span>Inventory</span><input id="bindInv" value="E" maxlength="12"></label></div><button class="mcbtn green" id="saveControls">ذخیره</button><button class="mcbtn" id="resetControls">پیش‌فرض</button><button class="mcbtn" id="closeControls">بستن</button></div></div>
 '''
 if 'id="controlsModal"' not in s:
     s = s.replace('<div id="rotate">', controls + '<div id="rotate">', 1)
@@ -108,12 +108,17 @@ if 'document.getElementById("survivalMode").onclick' not in s:
 '''
     s = s.replace(oldstart, modejs + oldstart, 1)
 
-# Controls settings UI.
-if 'mainmet.bind.bindForward' not in s:
-    script = '''<script>
-(function(){const m=document.getElementById("controlsModal");if(!m)return;const ids=["bindForward","bindLeft","bindBack","bindRight","bindJump","bindInv"];const d={bindForward:"Z",bindLeft:"Q",bindBack:"S",bindRight:"D",bindJump:"Space",bindInv:"E"};function load(){ids.forEach(id=>document.getElementById(id).value=localStorage.getItem("mainmet.bind."+id)||d[id])}load();document.getElementById("controlSettings").onclick=()=>{load();m.classList.add("show")};document.getElementById("closeControls").onclick=()=>m.classList.remove("show");document.getElementById("resetControls").onclick=()=>{ids.forEach(id=>localStorage.removeItem("mainmet.bind."+id));load()};document.getElementById("saveControls").onclick=()=>{ids.forEach(id=>localStorage.setItem("mainmet.bind."+id,document.getElementById(id).value.trim()||d[id]));m.classList.remove("show")}})();
-</script>
-'''
-    s = s.replace('<script>\n/* ===== mainmet ArMaCraft account/skin helper ===== */', script + '<script>\n/* ===== mainmet ArMaCraft account/skin helper ===== */', 1)
+# Functional key remapping for PC + touch movement.
+if 'function keyFor(name)' not in s:
+    keyscript = '''\n<script>\n(function(){\n const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};\n window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};\n window.mainmetKeyDown=function(name){return !!window.mainmetKeys?.[mainmetKeyFor(name)]};\n window.mainmetKeys={};\n addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});\n addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});\n const style=document.createElement('style');style.textContent='.bindHint{font-size:11px;color:#aaa}';document.head.appendChild(style);\n const m=document.getElementById('controlsModal');if(!m)return;\n const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};\n function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v.replace(/^Key/,'');}}\n document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};\n document.getElementById('closeControls').onclick=()=>m.classList.remove('show');\n document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};\n document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};\n})();\n</script>\n'''
+    s=s.replace('<script>\n/* ===== mainmet ArMaCraft account/skin helper ===== */',keyscript+'<script>\n/* ===== mainmet ArMaCraft account/skin helper ===== */',1)
+
+# Make the game physics use the saved movement keys.
+old='let f=(keys.KeyZ?1:0)-(keys.KeyS?1:0),s=(keys.KeyD?1:0)-(keys.KeyQ?1:0);'
+new='let f=(mainmetKeyDown("forward")?1:0)-(mainmetKeyDown("back")?1:0),s=(mainmetKeyDown("right")?1:0)-(mainmetKeyDown("left")?1:0);'
+s=s.replace(old,new)
+s=s.replace('if((keys.Space||keys.KeyJ)&&player.onGround)', 'if((mainmetKeyDown("jump")||keys.KeyJ)&&player.onGround)')
+s=s.replace('if(keys.Space)player.feet.y+=8*dt;', 'if(mainmetKeyDown("jump"))player.feet.y+=8*dt;')
+s=s.replace('if(keys.ShiftLeft||keys.ShiftRight)player.feet.y-=8*dt;', 'if(keys.ShiftLeft||keys.ShiftRight)player.feet.y-=8*dt;')
 
 p.write_text(s)
