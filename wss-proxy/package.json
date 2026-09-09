@@ -1,9 +1,14 @@
 {
-  "name": "mainmet-arma-wss-proxy",
-  "version": "1.0.0",
+  "name": "mainmet-arma-minecraft-proxy",
+  "version": "2.0.0",
   "private": true,
-  "description": "WebSocket to Minecraft Java TCP bridge for ArMaCraft",
+  "description": "Browser Minecraft WebSocket-to-TCP proxy for ArMaCraft",
   "main": "server.js",
   "scripts": {"start":"node server.js"},
-  "dependencies": {"express":"^4.21.2","ws":"^8.18.3"}
+  "dependencies": {
+    "compression":"^1.7.4",
+    "cors":"^2.8.5",
+    "express":"^4.21.2",
+    "net-browserify":"github:zardoy/prismarinejs-net-browserify"
+  }
 }
