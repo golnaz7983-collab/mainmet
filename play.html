@@ -654,7 +654,7 @@ loop(last);
   const skins=[...document.querySelectorAll('.armaSkin')];
   let selectedSkin=localStorage.getItem('mainmet.skin')||'classic';
   skins.forEach(el=>{el.classList.toggle('sel',el.dataset.skin===selectedSkin);el.onclick=()=>{selectedSkin=el.dataset.skin;localStorage.setItem('mainmet.skin',selectedSkin);skins.forEach(x=>x.classList.remove('sel'));el.classList.add('sel');status.textContent='Skin انتخاب شد: '+selectedSkin;}});
-  wss.value=localStorage.getItem('mainmet.arma.wss')||''; wss.onchange=()=>localStorage.setItem('mainmet.arma.wss',wss.value.trim());
+  wss.value=localStorage.getItem('mainmet.arma.wss')||'wss://mainmet.onrender.com/arma'; wss.onchange=()=>localStorage.setItem('mainmet.arma.wss',wss.value.trim());
   user.value=localStorage.getItem('mainmet.arma.user')||''; user.onchange=()=>localStorage.setItem('mainmet.arma.user',user.value.trim());
   function clean(){return user.value.trim().replace(/[^A-Za-z0-9_]/g,'').slice(0,16)}
   async function copy(text){try{await navigator.clipboard.writeText(text);status.textContent='کپی شد:\n'+text}catch(e){status.textContent='کپی خودکار نشد؛ دستی کپی کن:\n'+text}}
