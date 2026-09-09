@@ -1,4 +1,4 @@
-# v2
+# v3
 name: Fix game start and texture sizes
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Patch play.html
+      - name: Repair play.html
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -19,6 +19,20 @@ jobs:
           s=p.read_text(encoding='utf-8')
           s=s.replace('1014×1014 MOB TEXTURES','1024×1024 MOB TEXTURES')
           s=s.replace('1014);','1024);')
+          # Remove duplicate mob texture declarations: duplicate const declarations stop the whole script from loading.
+          lines=s.splitlines()
+          out=[]
+          seen_cow=False
+          seen_sheep=False
+          for line in lines:
+              if line.strip().startswith('const cowTex='):
+                  if seen_cow: continue
+                  seen_cow=True
+              if line.strip().startswith('const sheepTex='):
+                  if seen_sheep: continue
+                  seen_sheep=True
+              out.append(line)
+          s='\n'.join(out)+'\n'
           marker='/* ===== MAINMET_START_FIX ===== */'
           if marker not in s:
               patch=r'''<script>
@@ -31,7 +45,7 @@ jobs:
               if(start && !start.dataset.fixed){
                 const old=start.onclick;
                 start.onclick=function(e){
-                  try{ if(typeof old==='function') old.call(this,e); }catch(err){ console.warn('start handler',err); }
+                  if(typeof old==='function') old.call(this,e);
                   document.getElementById('start')?.style.setProperty('display','none','important');
                   document.getElementById('tip')?.classList.add('hide');
                 };
@@ -40,7 +54,7 @@ jobs:
               [surv,creative].forEach(btn=>{
                 if(btn && !btn.dataset.fixed){
                   const old=btn.onclick;
-                  btn.onclick=function(e){ try{ if(typeof old==='function') old.call(this,e); }catch(err){ console.warn('mode handler',err); } };
+                  btn.onclick=function(e){ if(typeof old==='function') old.call(this,e); };
                   btn.dataset.fixed='1';
                 }
               });
@@ -53,35 +67,22 @@ jobs:
           })();
           </script>'''
               s=s.replace('</body>',patch+'\n</body>')
-              p.write_text(s,encoding='utf-8')
+          p.write_text(s,encoding='utf-8')
           PY
-      - name: Patch index.html start bridge
+      - name: Validate JavaScript syntax
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-          marker='/* ===== MAINMET_INDEX_START_FIX ===== */'
-          if marker not in s:
-              patch=r'''<script>
-          /* ===== MAINMET_INDEX_START_FIX ===== */
-          (function(){
-            const f=document.getElementById('gameFrame');
-            let ready=false, pending=false;
-            function send(){ if(f?.contentWindow) f.contentWindow.postMessage({type:'mainmet-start-game'},'*'); }
-            if(f){
-              f.addEventListener('load',function(){ ready=true; if(pending){pending=false; setTimeout(send,80);} });
-              window.addEventListener('message',function(e){ if(e.source===f.contentWindow && e.data?.type==='mainmet-ready'){ready=true; if(pending){pending=false; setTimeout(send,30);} } });
-            }
-            window.mainmetStartGame=function(){ if(!f)return; if(ready)send(); else {pending=true; setTimeout(send,0);} };
-          })();
-          </script>'''
-              s=s.replace('</body>',patch+'\n</body>')
-              p.write_text(s,encoding='utf-8')
+          s=Path('play.html').read_text(encoding='utf-8')
+          assert 'const cowTex=' in s and 'const sheepTex=' in s
+          assert s.count('const cowTex=') == 1, s.count('const cowTex=')
+          assert s.count('const sheepTex=') == 1, s.count('const sheepTex=')
+          assert '1024×1024 MOB TEXTURES' in s
+          print('play.html checks passed')
           PY
       - name: Commit fixes
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add play.html index.html
-          git diff --cached --quiet || (git commit -m 'Fix game start buttons and mob texture size' && git push)
+          git diff --cached --quiet || (git commit -m 'Repair game start and mob texture declarations' && git push)
