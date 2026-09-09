@@ -12,6 +12,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Directly upgrade play.html
         run: python3 scripts/direct_upgrade.py
+      - name: Add game start bridge
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('play.html')
+          s=p.read_text(encoding='utf-8')
+          marker='/* ===== MAINMET_START_BRIDGE ===== */'
+          if marker not in s:
+              bridge='''\n<script>\n/* ===== MAINMET_START_BRIDGE ===== */\n(function(){\n  window.addEventListener('message',function(e){\n    const d=e.data||{};\n    if(d.type==='mainmet-start-game'){\n      const start=document.querySelector('#start .mcbtn.green')||document.getElementById('startGame');\n      if(start){start.click();}\n      const tip=document.getElementById('tip');\n      if(tip) tip.classList.add('hide');\n    }\n    if(d.type==='mainmet-control-settings' && d.settings){\n      Object.keys(d.settings).forEach(k=>localStorage.setItem('mainmet.player.'+k,String(d.settings[k])));\n    }\n  });\n  if(window.parent!==window){\n    window.parent.postMessage({type:'mainmet-ready'},'*');\n  }\n})();\n</script>\n'''
+              s=s.replace('</body>',bridge+marker+'\n</body>',1)
+              p.write_text(s,encoding='utf-8')
+          PY
       - name: Remember online account
         shell: bash
         run: |
@@ -25,7 +38,7 @@ jobs:
               s=s.replace('</style>',css+'</style>',1)
               html='''\n    <label class="armaRemember"><input id="armaRemember" type="checkbox"> <span>نام اکانت آنلاین من را به خاطر بسپار</span></label>\n'''
               s=s.replace('<div class="armaStatus" id="armaStatus"></div>',html+'    <div class="armaStatus" id="armaStatus"></div>',1)
-              js='''\n<script>\n/* ===== Remember ArMaCraft online account ===== */\n(function(){\n  const user=document.getElementById('armaUser');\n  const remember=document.getElementById('armaRemember');\n  const status=document.getElementById('armaStatus');\n  if(!user||!remember)return;\n  const saved=localStorage.getItem('mainmet.arma.remember')==='1';\n  remember.checked=saved;\n  if(saved && !user.value) user.value=localStorage.getItem('mainmet.arma.user')||localStorage.getItem('mainmet.arma.lastOnlineUser')||'';\n  remember.addEventListener('change',()=>{\n    localStorage.setItem('mainmet.arma.remember',remember.checked?'1':'0');\n    if(remember.checked && user.value.trim()) localStorage.setItem('mainmet.arma.user',user.value.trim());\n  });\n  user.addEventListener('input',()=>{\n    if(remember.checked) localStorage.setItem('mainmet.arma.user',user.value.trim());\n  });\n  window.addEventListener('mainmet:armaJoin',e=>{\n    const u=e.detail?.user||user.value.trim();\n    if(remember.checked && u){\n      localStorage.setItem('mainmet.arma.user',u);\n      localStorage.setItem('mainmet.arma.lastOnlineUser',u);\n      localStorage.setItem('mainmet.arma.lastOnlineAt',new Date().toISOString());\n      if(status) status.textContent='اکانت «'+u+'» برای ورود آنلاین به خاطر سپرده شد. رمز در سایت ذخیره نمی‌شود.';\n    }\n  });\n  const last=localStorage.getItem('mainmet.arma.lastOnlineUser');\n  const at=localStorage.getItem('mainmet.arma.lastOnlineAt');\n  if(saved && last && status && !status.textContent){\n    status.textContent='آخرین اکانت آنلاین: '+last+(at?'\nآخرین استفاده: '+new Date(at).toLocaleString('fa-IR'): '');\n  }\n})();\n</script>\n'''
+              js='''\n<script>\n/* ===== Remember ArMaCraft online account ===== */\n(function(){\n  const user=document.getElementById('armaUser');\n  const remember=document.getElementById('armaRemember');\n  const status=document.getElementById('armaStatus');\n  if(!user||!remember)return;\n  const saved=localStorage.getItem('mainmet.arma.remember')==='1';\n  remember.checked=saved;\n  if(saved && !user.value) user.value=localStorage.getItem('mainmet.arma.user')||localStorage.getItem('mainmet.arma.lastOnlineUser')||'';\n  remember.addEventListener('change',()=>{\n    localStorage.setItem('mainmet.arma.remember',remember.checked?'1':'0');\n    if(remember.checked && user.value.trim()) localStorage.setItem('mainmet.arma.user',user.value.trim());\n  });\n  user.addEventListener('input',()=>{\n    if(remember.checked) localStorage.setItem('mainmet.arma.user',user.value.trim());\n  });\n  window.addEventListener('mainmet:armaJoin',e=>{\n    const u=e.detail?.user||user.value.trim();\n    if(remember.checked && u){\n      localStorage.setItem('mainmet.arma.user',u);\n      localStorage.setItem('mainmet.arma.lastOnlineUser',u);\n      localStorage.setItem('mainmet.arma.lastOnlineAt',new Date().toISOString());\n      if(status) status.textContent='اکانت «'+u+'» برای ورود آنلاین به خاطر سپرده شد. رمز در سایت ذخیره نمی‌شود.';\n    }\n  });\n  const last=localStorage.getItem('mainmet.arma.lastOnlineUser');\n  const at=localStorage.getItem('mainmet.arma.lastOnlineAt');\n  if(saved && last && status && !status.textContent){\n    status.textContent='آخرین اکانت آنلاین: '+last+(at?'\\nآخرین استفاده: '+new Date(at).toLocaleString('fa-IR'): '');\n  }\n})();\n</script>\n'''
               s=s.replace('</body>',js+'</body>',1)
               p.write_text(s,encoding='utf-8')
           PY
@@ -36,5 +49,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add play.html
           git diff --cached --quiet && exit 0
-          git commit -m "Upgrade offline game and remember online account"
+          git commit -m "Connect game start and player controls"
           git push
