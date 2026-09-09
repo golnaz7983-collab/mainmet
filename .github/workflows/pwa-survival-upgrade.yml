@@ -1,0 +1,97 @@
+name: PWA and Survival Upgrade
+
+on:
+  push:
+    paths:
+      - '.github/workflows/pwa-survival-upgrade.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add installable web app and repair survival start
+        shell: python
+        run: |
+          from pathlib import Path
+
+          # PWA manifest
+          manifest = '''{
+            "name": "mainmet",
+            "short_name": "mainmet",
+            "description": "mainmet Web Game",
+            "start_url": "./",
+            "scope": "./",
+            "display": "standalone",
+            "orientation": "landscape",
+            "background_color": "#79c5ef",
+            "theme_color": "#111111",
+            "icons": [
+              {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+            ]
+          }'''
+          Path('manifest.webmanifest').write_text(manifest + '\n', encoding='utf-8')
+
+          # Small local icon, no external dependency.
+          icon = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="72" fill="#79c5ef"/><rect x="76" y="76" width="360" height="360" rx="28" fill="#315c36" stroke="#111" stroke-width="28"/><path d="M128 180h256v84H128z" fill="#70a84f"/><path d="M128 264h256v88H128z" fill="#765334"/><path d="M164 132h72v48h-72zM276 132h72v48h-72z" fill="#e7e7e7"/></svg>'''
+          Path('icon.svg').write_text(icon + '\n', encoding='utf-8')
+
+          # Offline shell cache for GitHub Pages.
+          sw = '''const CACHE='mainmet-v1';
+          const CORE=['./','./index.html','./play.html','./manifest.webmanifest','./icon.svg'];
+          self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting())));
+          self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+          self.addEventListener('fetch',e=>{
+            if(e.request.method!=='GET') return;
+            e.respondWith(caches.match(e.request).then(cached=>cached||fetch(e.request).then(r=>{
+              const copy=r.clone(); caches.open(CACHE).then(c=>c.put(e.request,copy)); return r;
+            }).catch(()=>cached)));
+          });
+          '''
+          Path('sw.js').write_text(sw, encoding='utf-8')
+
+          def patch(path, marker, addition):
+              p=Path(path); s=p.read_text(encoding='utf-8')
+              if marker in s: return s
+              s=s.replace('</head>', addition + '\n</head>', 1)
+              p.write_text(s, encoding='utf-8')
+              return s
+
+          # Add PWA metadata + install button/logic to the website.
+          index=Path('index.html')
+          s=index.read_text(encoding='utf-8')
+          if 'mainmet-pwa-install' not in s:
+              head='''\n<link rel="manifest" href="./manifest.webmanifest">\n<meta name="theme-color" content="#111111">\n<style>#mainmet-pwa-install{position:fixed;right:18px;bottom:18px;z-index:99999;border:2px solid #fff;background:linear-gradient(#70a84f,#456e31);color:#fff;border-radius:8px;padding:12px 16px;font-weight:900;box-shadow:0 6px 24px #0008;cursor:pointer}#mainmet-pwa-install.hide{display:none}</style>'''
+              s=s.replace('</head>',head+'\n</head>',1)
+              body='''\n<button id="mainmet-pwa-install" class="hide">💻 افزودن mainmet به صفحه لپ‌تاپ</button>\n<script>\n(()=>{\n let deferredPrompt=null;\n const btn=document.getElementById('mainmet-pwa-install');\n window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;btn.classList.remove('hide')});\n btn.addEventListener('click',async()=>{\n   if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;btn.classList.add('hide')}\n   else alert('اگر گزینه نصب نمایش داده نشد، از منوی ⋮ مرورگر گزینه Install app / نصب برنامه را بزن.');\n });\n window.addEventListener('appinstalled',()=>btn.classList.add('hide'));\n if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});\n})();\n</script>'''
+              s=s.replace('</body>',body+'\n</body>',1)
+              index.write_text(s,encoding='utf-8')
+
+          # Repair Survival/Creative selection without replacing the existing game engine.
+          play=Path('play.html')
+          s=play.read_text(encoding='utf-8')
+          marker='MAINMET_SURVIVAL_REPAIR_V2'
+          if marker not in s:
+              repair='''\n<script>\n/* MAINMET_SURVIVAL_REPAIR_V2 */\n(()=>{\n const surv=document.getElementById('survivalMode');\n const creative=document.getElementById('creativeMode');\n const start=document.querySelector('#start .mcbtn.green')||document.getElementById('startBtn');\n let mode=localStorage.getItem('mainmet.gamemode')||'survival';\n function select(m){mode=m;localStorage.setItem('mainmet.gamemode',m);\n   if(surv) surv.classList.toggle('sel',m==='survival');\n   if(creative) creative.classList.toggle('sel',m==='creative');\n   window.mainmetGameMode=m;\n   window.dispatchEvent(new CustomEvent('mainmet-mode-change',{detail:{mode:m}}));\n }\n if(surv) surv.addEventListener('click',()=>select('survival'),true);\n if(creative) creative.addEventListener('click',()=>select('creative'),true);\n select(mode);\n if(start) start.addEventListener('click',()=>{\n   const tip=document.getElementById('tip'); if(tip) tip.classList.add('hide');\n   const overlay=document.getElementById('start'); if(overlay) overlay.style.display='none';\n },true);\n})();\n</script>'''
+              s=s.replace('</body>',repair+'\n</body>',1)
+              play.write_text(s,encoding='utf-8')
+
+      - name: Commit upgrade
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html play.html manifest.webmanifest icon.svg sw.js
+          if git diff --cached --quiet; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git commit -m "Add one-click app install and repair survival mode"
+          git push
