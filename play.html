@@ -471,222 +471,29 @@ loop(last);
 (function(){const m=document.getElementById("controlsModal");if(!m)return;const ids=["bindForward","bindLeft","bindBack","bindRight","bindJump","bindInv"];const d={bindForward:"Z",bindLeft:"Q",bindBack:"S",bindRight:"D",bindJump:"Space",bindInv:"E"};function load(){ids.forEach(id=>document.getElementById(id).value=localStorage.getItem("mainmet.bind."+id)||d[id])}load();document.getElementById("controlSettings").onclick=()=>{load();m.classList.add("show")};document.getElementById("closeControls").onclick=()=>m.classList.remove("show");document.getElementById("resetControls").onclick=()=>{ids.forEach(id=>localStorage.removeItem("mainmet.bind."+id));load()};document.getElementById("saveControls").onclick=()=>{ids.forEach(id=>localStorage.setItem("mainmet.bind."+id,document.getElementById(id).value.trim()||d[id]));m.classList.remove("show")}})();
 </script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys?.[mainmetKeyFor(name)]};
- window.mainmetKeys={};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const style=document.createElement('style');style.textContent='.bindHint{font-size:11px;color:#aaa}';document.head.appendChild(style);
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v.replace(/^Key/,'');}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeys={};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeys={};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeys={};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeys={};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeys={};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeys={};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeys={};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeys={};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeys={};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeys={};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
 
-<script>
-(function(){
- const defaults={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};
- window.mainmetKeyFor=function(name){return localStorage.getItem('mainmet.key.'+name)||defaults[name]};
- window.mainmetKeys={};
- window.mainmetKeyDown=function(name){return !!window.mainmetKeys[mainmetKeyFor(name)]};
- addEventListener('keydown',e=>{window.mainmetKeys[e.code]=true});
- addEventListener('keyup',e=>{window.mainmetKeys[e.code]=false});
- const m=document.getElementById('controlsModal');if(!m)return;
- const fields={forward:'bindForward',left:'bindLeft',back:'bindBack',right:'bindRight',jump:'bindJump',inv:'bindInv'};
- function load(){for(const [n,id] of Object.entries(fields)){const v=localStorage.getItem('mainmet.key.'+n);if(v)document.getElementById(id).value=v==='Space'?'Space':v.replace(/^Key/,'')}}
- document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};
- document.getElementById('closeControls').onclick=()=>m.classList.remove('show');
- document.getElementById('resetControls').onclick=()=>{Object.keys(fields).forEach(n=>localStorage.removeItem('mainmet.key.'+n));load()};
- document.getElementById('saveControls').onclick=()=>{for(const [n,id] of Object.entries(fields)){let v=document.getElementById(id).value.trim();if(n==='jump')v=v.toLowerCase()==='space'?'Space':'Key'+v.toUpperCase();else v='Key'+v.toUpperCase();localStorage.setItem('mainmet.key.'+n,v)}m.classList.remove('show')};
-})();
-</script>
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
 /* ===== mainmet ArMaCraft account/skin helper ===== */
 (function(){
@@ -952,20 +759,7 @@ body.mainmet-realistic canvas{filter:saturate(1.08) contrast(1.035) brightness(1
 })();
 </script>
 
-<script id="MAINMET_EMERGENCY_START">
-(()=>{
-  const ready=()=>{
-    const start=document.getElementById('start');
-    const btn=document.getElementById('startBtn');
-    if(!btn||btn.__emergencyBound)return;
-    btn.__emergencyBound=true;
-    btn.addEventListener('click',()=>{start&&(start.style.display='none');document.getElementById('tip')?.classList.add('hide')},{capture:true});
-    document.getElementById('survivalMode')?.addEventListener('click',()=>{localStorage.setItem('mainmet.gamemode','survival')});
-    document.getElementById('creativeMode')?.addEventListener('click',()=>{localStorage.setItem('mainmet.gamemode','creative')});
-  };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
-})();
-</script>
+
 \n\n\n\n<script id="MAINMET_SURVIVAL_SYSTEM">
 (()=>{
  const boot=()=>{
@@ -982,5 +776,5 @@ body.mainmet-realistic canvas{filter:saturate(1.08) contrast(1.035) brightness(1
  const w=setInterval(()=>{if(window.scene&&window.player){clearInterval(w);boot()}},200);
 })();
 </script>
-<style id="MAINMET_MINIMAP">#mainmet-minimap{position:fixed;right:14px;top:98px;width:150px;height:150px;z-index:40;border:2px solid #555;background:#101510d9;image-rendering:pixelated;pointer-events:none}.mainmet-mp-title{position:fixed;right:18px;top:102px;z-index:41;color:#fff;font:700 10px Tahoma;text-shadow:2px 2px #000}</style><canvas id="mainmet-minimap" width="150" height="150"></canvas><div class="mainmet-mp-title">MAP</div><script id="MAINMET_MINIMAP_SCRIPT">(()=>{const c=document.getElementById('mainmet-minimap'),x=c.getContext('2d');function draw(){x.clearRect(0,0,150,150);x.fillStyle='#1c351d';x.fillRect(0,0,150,150);const p=window.player;if(p){for(let i=-7;i<=7;i++)for(let j=-7;j<=7;j++){const h=window.heightAt?heightAt(Math.floor(p.feet.x)+i,Math.floor(p.feet.z)+j):4;x.fillStyle=h>6?'#315c35':h<4?'#c5ad63':'#47763f';x.fillRect(75+i*7,75+j*7,6,6)}}x.fillStyle='#fff';x.fillRect(72,72,6,6);requestAnimationFrame(draw)}draw()})();</script></body>
+<style id="MAINMET_MINIMAP">#mainmet-minimap{position:fixed;right:14px;top:98px;width:150px;height:150px;z-index:40;border:2px solid #555;background:#101510d9;image-rendering:pixelated;pointer-events:none}.mainmet-mp-title{position:fixed;right:18px;top:102px;z-index:41;color:#fff;font:700 10px Tahoma;text-shadow:2px 2px #000}</style><canvas id="mainmet-minimap" width="150" height="150"></canvas><div class="mainmet-mp-title">MAP</div><script id="MAINMET_MINIMAP_SCRIPT">(()=>{const c=document.getElementById('mainmet-minimap'),x=c.getContext('2d');function draw(){x.clearRect(0,0,150,150);x.fillStyle='#1c351d';x.fillRect(0,0,150,150);const p=window.player;if(p){for(let i=-7;i<=7;i++)for(let j=-7;j<=7;j++){const h=window.heightAt?heightAt(Math.floor(p.feet.x)+i,Math.floor(p.feet.z)+j):4;x.fillStyle=h>6?'#315c35':h<4?'#c5ad63':'#47763f';x.fillRect(75+i*7,75+j*7,6,6)}}x.fillStyle='#fff';x.fillRect(72,72,6,6);requestAnimationFrame(draw)}draw()})();</script><script id="MAINMET_CONTROLS_CLEAN">(()=>{const d={forward:'KeyZ',left:'KeyQ',back:'KeyS',right:'KeyD',jump:'Space',inv:'KeyE'};window.mainmetKeyFor=n=>localStorage.getItem('mainmet.key.'+n)||d[n];window.mainmetKeys=window.mainmetKeys||{};window.mainmetKeyDown=n=>!!window.mainmetKeys[window.mainmetKeyFor(n)];addEventListener('keydown',e=>window.mainmetKeys[e.code]=true);addEventListener('keyup',e=>window.mainmetKeys[e.code]=false);})();</script><script id="MAINMET_START_FINAL">(()=>{const boot=()=>{const b=document.getElementById('startBtn'),st=document.getElementById('start');if(!b||b.dataset.final)return;b.dataset.final='1';b.addEventListener('click',()=>{try{window.started=true}catch(_){}if(st)st.style.setProperty('display','none','important');document.getElementById('tip')?.classList.add('hide');try{document.querySelector('#game canvas')?.requestPointerLock?.()}catch(_){}},true);for(const id of ['survivalMode','creativeMode'])document.getElementById(id)?.addEventListener('click',()=>localStorage.setItem('mainmet.gamemode',id==='creativeMode'?'creative':'survival'),true)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot()})();</script></body>
 </html>
