@@ -1,9 +1,6 @@
 name: Fix mainmet player UI
 on:
   push:
-    paths:
-      - 'scripts/fix_index_ui.py'
-      - '.github/workflows/fix-index-ui.yml'
   workflow_dispatch:
 permissions:
   contents: write
