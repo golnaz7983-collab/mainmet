@@ -1,0 +1,97 @@
+name: Update mainmet offline world and controls
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/update-game.yml'
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch play.html
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('play.html')
+          s=p.read_text()
+          s=s.replace('c.width=c.height=512;', 'c.width=c.height=2048;')
+          s=s.replace('x.fillRect(0,0,256,256);', 'x.fillRect(0,0,c.width,c.height);')
+          s=s.replace('for(let i=0;i<5200;i++){', 'for(let i=0;i<26000;i++){', 1)
+          s=s.replace('const px=s&255,py=(s>>>8)&255,sz=1+(s%4);', 'const px=s&(c.width-1),py=(s>>>8)&(c.height-1),sz=1+(s%8);', 1)
+          s=s.replace('for(let i=0;i<800;i++){', 'for(let i=0;i<4000;i++){', 1)
+          s=s.replace('const px=s&255,py=(s>>>8)&255;', 'const px=s&(c.width-1),py=(s>>>8)&(c.height-1);', 1)
+          s=s.replace('<title>mainmet • Web Game 512</title>', '<title>mainmet • Web Game 2048</title>')
+          s=s.replace('mainmet • WEB GAME 512', 'mainmet • WEB GAME 2048')
+          s=s.replace('512×512 TEXTURES', '2048×2048 TEXTURES')
+          s=s.replace('Web Game 512×512', 'Web Game 2048×2048')
+          s=s.replace('Web Game 512', 'Web Game 2048')
+          s=s.replace('#rotate{display:none;', '#controlSettings{position:fixed;z-index:95;left:10px;top:90px;width:44px;height:38px;border:2px solid #555;border-radius:4px;background:#111c;color:#fff;font-weight:900;pointer-events:auto}#controlsModal{position:fixed;inset:0;z-index:125;background:#000c;display:none;align-items:center;justify-content:center;padding:18px}#controlsModal.show{display:flex}.controlsBox{width:min(560px,94vw);max-height:90vh;overflow:auto;background:#151815;border:3px solid #555;box-shadow:0 24px 90px #000;color:#fff;padding:18px}.controlGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.controlRow{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#0e110e;border:1px solid #454b45;padding:8px;border-radius:4px}.controlRow input{width:100px;background:#090b09;color:#fff;border:1px solid #666;padding:7px;direction:ltr}@media(orientation:landscape) and (pointer:coarse){#touch{display:block}#joy{left:24px;bottom:26px}#jump{right:24px;bottom:120px}.break{right:98px;bottom:28px}.place{right:24px;bottom:28px}.look{right:24px;top:26px}.touchbtn{width:58px;height:58px}}\n#rotate{display:none;')
+          s=s.replace('<button id="pauseBtn">Ⅱ</button>', '<button id="pauseBtn">Ⅱ</button><button id="controlSettings" title="تنظیم دکمه‌ها">⚙</button>')
+          marker='<div id="inventory"><div class="panel">'
+          modal='''<div id="controlsModal"><div class="controlsBox"><h2>⚙ تنظیم دکمه‌ها</h2><p>کلیدهای کامپیوتر و دکمه‌های موبایل را می‌توانی تنظیم کنی. تنظیمات در همین مرورگر ذخیره می‌شود.</p><div class="controlGrid"><label class="controlRow"><span>حرکت جلو</span><input id="bindForward" maxlength="1" value="Z"></label><label class="controlRow"><span>حرکت چپ</span><input id="bindLeft" maxlength="1" value="Q"></label><label class="controlRow"><span>حرکت عقب</span><input id="bindBack" maxlength="1" value="S"></label><label class="controlRow"><span>حرکت راست</span><input id="bindRight" maxlength="1" value="D"></label><label class="controlRow"><span>پرش</span><input id="bindJump" maxlength="12" value="Space"></label><label class="controlRow"><span>Inventory</span><input id="bindInv" maxlength="1" value="E"></label></div><button class="mcbtn green" id="saveControls">ذخیره تنظیمات</button><button class="mcbtn" id="resetControls">بازگردانی پیش‌فرض</button><button class="mcbtn" id="closeControls">بستن</button></div></div>\n\n'''
+          if 'id="controlsModal"' not in s:
+              s=s.replace(marker, modal+marker)
+          start='for(let x=-30;x<=30;x++)for(let z=-30;z<=30;z++){'
+          a=s.find(start)
+          b=s.find('/* ---------- roaming mobs ---------- */')
+          if a!=-1 and b!=-1:
+              replacement=r'''const CHUNK_SIZE=16,STREAM_RADIUS=1;
+const worldChunks=new Map();
+function chunkId(cx,cz){return `${cx},${cz}`}
+function chunkFor(x,z){return [Math.floor(x/CHUNK_SIZE),Math.floor(z/CHUNK_SIZE)]}
+function generateChunk(cx,cz){
+ const id=chunkId(cx,cz);if(worldChunks.has(id))return;
+ const list=[];worldChunks.set(id,list);
+ const remember=(x,y,z,type)=>{addBlock(x,y,z,type);list.push(key(x,y,z));};
+ for(let lx=0;lx<CHUNK_SIZE;lx++)for(let lz=0;lz<CHUNK_SIZE;lz++){
+  const x=cx*CHUNK_SIZE+lx,z=cz*CHUNK_SIZE+lz,h=Math.max(2,heightAt(x,z));
+  heights.set(key(x,0,z),h);
+  for(let y=0;y<=h;y++)remember(x,y,z,y===h?'grass':y>=h-2?'dirt':'stone');
+ }
+ for(let lx=2;lx<CHUNK_SIZE-2;lx+=5)for(let lz=2;lz<CHUNK_SIZE-2;lz+=5){
+  const x=cx*CHUNK_SIZE+lx,z=cz*CHUNK_SIZE+lz;
+  if(Math.hypot(x,z-8)<10||rnd(x+4,z+8)<=.72)continue;
+  const h=heightAt(x,z)+1;
+  for(let i=0;i<4;i++)remember(x,h+i,z,'wood');
+  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=1;dy<=3;dy++)if(Math.abs(dx)+Math.abs(dz)<4)remember(x+dx,h+dy,z+dz,'leaves');
+ }
+}
+function unloadChunk(cx,cz){
+ const id=chunkId(cx,cz),list=worldChunks.get(id);if(!list)return;
+ for(const k of list){const b=blocks.get(k);if(b)removeBlock(b.x,b.y,b.z);}
+ worldChunks.delete(id);
+}
+function updateWorldStreaming(){
+ const [pcx,pcz]=chunkFor(player.feet.x,player.feet.z),wanted=new Set();
+ for(let dx=-STREAM_RADIUS;dx<=STREAM_RADIUS;dx++)for(let dz=-STREAM_RADIUS;dz<=STREAM_RADIUS;dz++){const cx=pcx+dx,cz=pcz+dz;wanted.add(chunkId(cx,cz));generateChunk(cx,cz);}
+ for(const id of [...worldChunks.keys()])if(!wanted.has(id)){const [cx,cz]=id.split(',').map(Number);unloadChunk(cx,cz);}
+}
+for(let cx=-1;cx<=1;cx++)for(let cz=-1;cz<=1;cz++)generateChunk(cx,cz);
+'''
+              s=s[:a]+replacement+s[b:]
+          anchor='const sandTex=tex("#cfb66d","#bca15b",73);'
+          if anchor in s and 'const cowTex=' not in s:
+              s=s.replace(anchor, anchor+'\nconst cowTex=tex("#6b472c","#3e2818",91);\nconst sheepTex=tex("#e8e7df","#b9b9b3",103);')
+          old="const bm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xe8e7df:0x6b472c}),hm=new THREE.MeshLambertMaterial({color:type==='sheep'?0xd9d9d4:0x56371f});"
+          new="const animalTex=type==='sheep'?sheepTex:cowTex;const bm=new THREE.MeshLambertMaterial({map:animalTex});const hm=new THREE.MeshLambertMaterial({map:animalTex});"
+          s=s.replace(old,new)
+          s=s.replace('let yaw=0,pitch=0,selected=0,started=false,paused=false;', 'let yaw=0,pitch=0,selected=0,started=false,paused=false,lastChunkX=999999,lastChunkZ=999999;')
+          s=s.replace('if(started&&!paused){physics(dt);updateMobs(dt);}', 'if(started&&!paused){physics(dt);updateMobs(dt);const cf=chunkFor(player.feet.x,player.feet.z);if(cf[0]!==lastChunkX||cf[1]!==lastChunkZ){lastChunkX=cf[0];lastChunkZ=cf[1];updateWorldStreaming();}}')
+          s=s.replace('autocomplete="new-password"', 'autocomplete="current-password"')
+          old='<div class="armaNote"><b>اکانت:</b> رمز در سایت ذخیره نمی‌شود. بعد از انتخاب نام و رمز، دستور <code>/register</code> یا <code>/login</code> ساخته و کپی می‌شود. برای اجرای واقعی این دستورات، سرور باید مود احراز هویت سمت‌سرور داشته باشد.</div>'
+          new='<div class="armaNote"><b>اکانت:</b> نام اکانت به خاطر سپرده می‌شود. رمز برای امنیت داخل سایت ذخیره نمی‌شود و مرورگر می‌تواند آن را با Password Manager نگه دارد. بعد از ورود، همان نام/رمز برای اتصال آنلاین استفاده می‌شود.</div>'
+          s=s.replace(old,new)
+          if 'mainmetControls' not in s:
+              s=s.replace('</script>\n<script>\n/* ===== mainmet ArMaCraft account/skin helper ===== */', '''</script>\n<script>\n/* ===== mainmet control settings ===== */\n(function(){\n const m=document.getElementById('controlsModal');if(!m)return;\n const ids=['bindForward','bindLeft','bindBack','bindRight','bindJump','bindInv'];\n const defaults={bindForward:'Z',bindLeft:'Q',bindBack:'S',bindRight:'D',bindJump:'Space',bindInv:'E'};\n const load=()=>ids.forEach(id=>{const el=document.getElementById(id);el.value=localStorage.getItem('mainmet.bind.'+id)||defaults[id]});\n load();\n document.getElementById('controlSettings').onclick=()=>{load();m.classList.add('show')};\n document.getElementById('closeControls').onclick=()=>m.classList.remove('show');\n document.getElementById('resetControls').onclick=()=>{ids.forEach(id=>localStorage.removeItem('mainmet.bind.'+id));load()};\n document.getElementById('saveControls').onclick=()=>{ids.forEach(id=>localStorage.setItem('mainmet.bind.'+id,document.getElementById(id).value.trim()||defaults[id]));m.classList.remove('show')};\n})();\n</script>\n<script>\n/* ===== mainmet ArMaCraft account/skin helper ===== */''')
+          p.write_text(s)
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name 'mainmet-bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add play.html
+          git diff --cached --quiet || git commit -m 'Upgrade offline world streaming, controls, and 2048 textures'
+          git push
