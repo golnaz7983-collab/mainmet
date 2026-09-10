@@ -81,7 +81,8 @@ canvas{display:block;width:100%;height:100%}
 #mmWorldCreate.show{display:flex}.mmCreateBox{width:min(720px,94vw);background:#171817;border:3px solid #555;box-shadow:0 24px 90px #000;padding:22px;text-align:center}.mmCreateBox h2{margin:0 0 6px;font-size:30px;text-shadow:3px 3px #000}.mmCreateBox p{color:#ccc;margin:6px 0 15px}.mmWorldName{width:100%;background:#090b09;color:#fff;border:2px solid #666;padding:12px;font-size:16px;text-align:center}.mmModes{display:flex;gap:10px;margin:14px 0}.mmMode{flex:1;padding:14px;background:#3b3b3b;color:#fff;border:3px solid #222;font-weight:900;cursor:pointer}.mmMode.sel{background:#315c36;border-color:#8bd18d}.mmCreate{width:100%;padding:14px;background:linear-gradient(#78aa55,#466d32);color:#fff;border:3px solid #222;font-weight:900;font-size:16px;cursor:pointer}
 #mmInv{position:fixed;inset:0;z-index:155;display:none;align-items:center;justify-content:center;background:#000b;padding:14px;color:#fff}.mmInvBox{width:min(1050px,96vw);max-height:94vh;overflow:auto;background:#777;border:4px solid #222;box-shadow:inset 3px 3px #bbb,inset -4px -4px #333,0 20px 80px #000;padding:14px;direction:ltr}.mmInvTop{display:grid;grid-template-columns:1fr 210px;gap:18px}.mmSlots{display:grid;grid-template-columns:repeat(9,1fr);gap:5px}.mmSlot{height:54px;background:#666;border:3px solid #333;box-shadow:inset 2px 2px #aaa,inset -3px -3px #333;position:relative;cursor:pointer}.mmSlot span{position:absolute;left:4px;top:2px;font-size:11px;text-shadow:2px 2px #000}.mmCraft{background:#666;border:3px solid #333;padding:10px}.mmCraftGrid{display:grid;grid-template-columns:repeat(2,48px);gap:5px;margin:8px auto;width:max-content}.mmCraftGrid div{width:48px;height:48px;background:#777;border:3px solid #333;box-shadow:inset 2px 2px #aaa,inset -3px -3px #333}.mmResult{width:54px;height:54px;background:#777;border:3px solid #333;margin:10px auto}.mmInvTitle{font-weight:900;margin:8px 0;color:#fff;text-shadow:2px 2px #222}.mmCatalog{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-top:8px}.mmItem{min-height:38px;background:#555;border:2px solid #333;color:#fff;font-size:9px;padding:4px;cursor:pointer;text-align:center}.mmItem:hover{filter:brightness(1.25)}.mmClose{width:100%;margin-top:10px;padding:10px;background:#444;color:#fff;border:2px solid #222;font-weight:900}
 @media(max-width:700px){.mmTop{grid-template-columns:1fr}.mmCatalog{grid-template-columns:repeat(6,1fr)}.mmSlot{height:44px}.mmTop{grid-template-columns:1fr}.mmInvTop{grid-template-columns:1fr}}
-</style></head>
+</style><style id="MAINMET_FULL_MOBS_CSS">
+.mmMobName{position:absolute;transform:translate(-50%,-100%);font:700 10px Tahoma;color:#fff;text-shadow:2px 2px #000;pointer-events:none;z-index:28}.mmDrop{position:absolute;z-index:29;background:#111d;color:#fff;border:1px solid #777;padding:3px 5px;border-radius:3px;font-size:10px;pointer-events:none}.mmHealth{position:fixed;left:50%;top:calc(50% + 28px);transform:translateX(-50%);z-index:27;color:#fff;text-shadow:2px 2px #000;font:bold 12px Tahoma}.mmNight{position:fixed;right:10px;top:92px;z-index:26;background:#111c;border:2px solid #555;color:#fff;padding:6px 9px;font:700 11px Tahoma;direction:ltr}</style></head>
 <body><div id="mmWorldCreate">
   <div class="mmCreateBox">
     <h2>mainmet</h2>
@@ -824,6 +825,34 @@ body.mainmet-realistic canvas{filter:saturate(1.08) contrast(1.035) brightness(1
   document.addEventListener('keydown',e=>{const k=String(e.key).toLowerCase();if(k==='e'&&!e.ctrlKey&&!e.altKey){const active=document.activeElement;if(active&&['INPUT','TEXTAREA'].includes(active.tagName))return;inv.style.display=inv.style.display==='flex'?'none':'flex'}});
   window.mainmetOpenInventory=()=>inv.style.display='flex';
   window.mainmetSelectedMode=()=>mode;
+})();
+</script><script id="MAINMET_FULL_MOBS_V1">
+(()=>{
+  const THREE=window.THREE;if(!THREE||!window.scene||!window.camera)return;
+  const root=new THREE.Group();root.name='mainmet-minecraft-animals';scene.add(root);
+  const animals=['Cow','Pig','Sheep','Chicken','Horse','Donkey','Mule','Rabbit','Wolf','Cat','Fox','Goat','Llama','Polar Bear','Panda','Bee','Dolphin','Turtle','Frog','Axolotl'];
+  const colors={Cow:0x6b4a32,Pig:0xe49aa0,Sheep:0xe8e5dc,Chicken:0xf0eee5,Horse:0x7b5235,Donkey:0x8b765e,Mule:0x6d5c49,Rabbit:0xb78b6a,Wolf:0xaaa7a0,Cat:0x77726b,Fox:0xc66a32,Goat:0x8a8a82,Llama:0xb6a487,'Polar Bear':0xe8e8e8,Panda:0x202020,Bee:0xf0c331,Dolphin:0x688aa1,Turtle:0x477b45,Frog:0x57933e,Axolotl:0xe99bb0};
+  const live=[];
+  function mat(c){return new THREE.MeshLambertMaterial({color:c});}
+  function mob(type,x,z){
+    const g=new THREE.Group();g.userData={type,health:10,drop:type==='Cow'?'Leather + Beef':type==='Sheep'?'Wool + Mutton':type==='Pig'?'Porkchop':type==='Chicken'?'Feather + Chicken':type==='Bee'?'Honeycomb':'Drop'};
+    const m=mat(colors[type]??0x999999), dark=mat(0x292929), white=mat(0xf4f4f4);
+    const body=new THREE.Mesh(new THREE.BoxGeometry(.9,.65,1.35),m);body.position.y=.65;g.add(body);
+    const head=new THREE.Mesh(new THREE.BoxGeometry(.65,.65,.65),m);head.position.set(0,1.05,.72);g.add(head);
+    for(let i=0;i<4;i++){const leg=new THREE.Mesh(new THREE.BoxGeometry(.18,.55,.18),m);leg.position.set((i%2?-.3:.3),.28,(i<2?-.43:.43));g.add(leg)}
+    if(['Cow','Sheep','Goat','Llama'].includes(type)){const a=new THREE.Mesh(new THREE.BoxGeometry(.18,.18,.18),dark);a.position.set(-.28,1.18,.98);g.add(a);const b=a.clone();b.position.x=.28;g.add(b)}
+    if(type==='Chicken'){head.material=white;const beak=new THREE.Mesh(new THREE.BoxGeometry(.2,.14,.25),mat(0xe7a52b));beak.position.set(0,1.05,1.08);g.add(beak)}
+    g.position.set(x,0,z);root.add(g);live.push(g);return g;
+  }
+  for(let i=0;i<30;i++){const a=animals[i%animals.length];const x=((i*37)%90)-45,z=((i*53)%90)-45;if(Math.hypot(x,z)<9)continue;mob(a,x,z)}
+  const badge=document.createElement('div');badge.className='mmNight';badge.id='mmNight';document.body.appendChild(badge);
+  const hp=document.createElement('div');hp.className='mmHealth';hp.textContent='❤ 20/20';document.body.appendChild(hp);
+  let ticks=0,day=0;
+  function night(){day=(day+.0008)%1;const sun=window.sun;if(sun){const ang=day*Math.PI*2;sun.position.set(Math.cos(ang)*30,Math.sin(ang)*30,10);sun.intensity=Math.max(.12,.35+Math.max(0,Math.sin(ang))*1.8);if(window.scene)scene.background=new THREE.Color(Math.sin(ang)>0?0x79c5ef:0x07101e)}badge.textContent=(Math.sin(day*Math.PI*2)>0?'☀ DAY':'☾ NIGHT')+' • '+Math.floor(day*24000).toString().padStart(5,'0')}
+  function drops(g){const d=document.createElement('div');d.className='mmDrop';d.textContent='+'+g.userData.drop;d.style.left='50%';d.style.top='45%';document.body.appendChild(d);setTimeout(()=>d.remove(),1200);}
+  window.mainmetDamageMob=function(){let best=null,dist=3;for(const g of live){if(!g.parent)continue;const dx=g.position.x-(window.player?.feet?.x||0),dz=g.position.z-(window.player?.feet?.z||0),dd=Math.hypot(dx,dz);if(dd<dist){dist=dd;best=g}}if(best){best.userData.health-=5;if(best.userData.health<=0){drops(best);best.parent.remove(best)}}};
+  document.addEventListener('keydown',e=>{if(e.code==='KeyF')window.mainmetDamageMob()});
+  function loop(){ticks++;night();if(ticks%30===0){for(const g of live){if(!g.parent)continue;g.rotation.y+=Math.sin(ticks*.03+g.id)*.015;g.position.x+=Math.sin(ticks*.01+g.id)*.002;g.position.z+=Math.cos(ticks*.013+g.id)*.002}}requestAnimationFrame(loop)}loop();
 })();
 </script></body>
 </html>
