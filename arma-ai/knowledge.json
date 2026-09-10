@@ -1,0 +1,14 @@
+{
+  "levels": {
+    "1": {"name":"مقدماتی","topics":["فرهنگ و سواد عمومی","ریاضی پایه","علوم پایه","فارسی و نگارش","مبانی رایانه","مبانی اینترنت","HTML و CSS مقدماتی"]},
+    "2": {"name":"متوسط","topics":["ریاضی و حل مسئله","علوم و فناوری","فرهنگ عمومی و تاریخ","HTML/CSS پیشرفته","JavaScript مقدماتی","Git و GitHub","مبانی پایگاه داده","مبانی امنیت"]},
+    "3": {"name":"پیشرفته","topics":["الگوریتم و ساختمان داده","JavaScript پیشرفته","Node.js و API","React و رابط کاربری","SQL و طراحی پایگاه داده","شبکه و HTTP","امنیت وب","تست و دیباگ","بهینه‌سازی و Performance"]},
+    "4": {"name":"فوق‌پیشرفته","topics":["معماری نرم‌افزار","الگوریتم‌های پیشرفته","ساختمان داده پیشرفته","JavaScript عمیق و Asynchronous Programming","Backend و REST/WebSocket","Database و طراحی مقیاس‌پذیر","امنیت برنامه و احراز هویت","DevOps و CI/CD","Docker و استقرار","PWA و Web Apps","ساخت APK و Android/Kotlin","طراحی سیستم‌های بزرگ","مهندسی کیفیت و تست","Performance و بهینه‌سازی","تحقیق و جستجوی فنی"]}
+  },
+  "sources": [
+    {"name":"MDN Web Docs","url":"https://developer.mozilla.org/","topics":["HTML","CSS","JavaScript","Web APIs","Web development"]},
+    {"name":"MDN JavaScript Guide","url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide","topics":["JavaScript","Async","Modules","Classes","Advanced JavaScript"]},
+    {"name":"MDN Learn Web Development","url":"https://developer.mozilla.org/en-US/docs/Learn_web_development","topics":["Web development","HTML","CSS","JavaScript","Publishing"]},
+    {"name":"freeCodeCamp","url":"https://www.freecodecamp.org/","topics":["Programming","Web development","Algorithms","Projects"]}
+  ]
+}
