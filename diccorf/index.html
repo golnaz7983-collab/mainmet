@@ -15,4 +15,4 @@ $('pickAvatar').onclick=()=>{if(requireUser())$('avatarFile').click()};$('avatar
 if('BroadcastChannel'in window){const bc=new BroadcastChannel('diccorf-chat');bc.onmessage=e=>{if(e.data==='refresh'){chats=JSON.parse(localStorage.getItem('diccorf.chats.v3')||'[]');render();if(selected!==null)openChat(selected)}};window.diccorfBroadcast=()=>bc.postMessage('refresh')}
 window.addEventListener('storage',e=>{if(e.key==='diccorf.chats.v3'){chats=JSON.parse(e.newValue||'[]');render();if(selected!==null)openChat(selected)}});if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 if(!user){$('login').classList.remove('hide')}else{$('login').classList.add('hide');render()}
-</script></body></html>
+</script><script src="realtime.js?v=1"></script></body></html>
