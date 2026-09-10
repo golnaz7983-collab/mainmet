@@ -1,0 +1,37 @@
+name: Add IranJib link to game
+on:
+  push:
+    paths:
+      - '.github/workflows/add-iranjib-game-link.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add IranJib button
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('play.html')
+          s = p.read_text(encoding='utf-8')
+          marker = 'MAINMET_IRANJIB_LINK_V1'
+          if marker not in s:
+              patch = r'''<style id="MAINMET_IRANJIB_LINK_V1">
+#iranJibGameLink{position:fixed;z-index:110;top:96px;left:10px;display:flex;align-items:center;gap:7px;padding:8px 11px;border:2px solid #555;border-radius:5px;background:linear-gradient(#3f3f3f,#202020);color:#fff;text-decoration:none;font:900 12px Tahoma,Arial,sans-serif;text-shadow:2px 2px #111;box-shadow:inset 2px 2px #888,inset -2px -2px #111,0 3px 8px #0008}
+#iranJibGameLink:hover{filter:brightness(1.2)}
+#iranJibGameLink small{display:block;font-weight:400;color:#ddd;direction:ltr}
+@media(max-width:650px){#iranJibGameLink{top:138px;left:8px;padding:7px 9px;font-size:11px}#iranJibGameLink small{display:none}}
+</style>
+<a id="iranJibGameLink" href="https://www.iranjib.ir/" target="_blank" rel="noopener noreferrer" title="https://www.iranjib.ir/">🌐 ایران جیب <small>iranjib.ir</small></a>
+'''
+              s = s.replace('</head>', patch + '</head>', 1)
+              p.write_text(s, encoding='utf-8')
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add play.html
+          git diff --cached --quiet || (git commit -m 'Add IranJib link to web game' && git push)
