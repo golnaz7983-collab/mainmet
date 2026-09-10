@@ -27,23 +27,31 @@ const diccorfClients = new Set();
 const users = new Map();
 const messages = new Map();
 
-function cleanUser(v){return String(v || '').trim().slice(0,40)}
+function cleanUser(v){return String(v || '').replace(/[\s()\-]/g,'').trim().slice(0,40)}
 function cleanText(v){return String(v || '').trim().slice(0,4000)}
 function roomKey(a,b){return [a,b].sort().join('::')}
-function send(ws,obj){if(ws.readyState===1) ws.send(JSON.stringify(obj))}
+function send(ws,obj){if(ws && ws.readyState===1) ws.send(JSON.stringify(obj))}
 function broadcast(obj, except=null){for(const ws of diccorfClients) if(ws!==except) send(ws,obj)}
-
-function userList(){return [...users.values()].map(u=>({phone:u.phone,name:u.name,online:u.ws&&u.ws.readyState===1}))}
+function userList(){return [...users.values()].map(u=>({phone:u.phone,name:u.name,online:!!(u.ws&&u.ws.readyState===1)}))}
+function sendPending(ws){
+  const phone=ws.user?.phone; if(!phone)return;
+  for(const arr of messages.values()){
+    for(const m of arr){
+      if(m.to===phone && m.from!==phone) send(ws,{type:'message',message:m,pending:true});
+    }
+  }
+}
 
 function handleChat(ws, data){
   if(!data || typeof data!=='object') return;
   if(data.type==='hello'){
-    const phone=cleanUser(data.phone), name=cleanUser(data.name) || 'کاربر Diccorf';
+    const phone=cleanUser(data.phone), name=cleanText(data.name) || 'کاربر Diccorf';
     if(!phone) return send(ws,{type:'error',message:'شماره موبایل لازم است.'});
     let u=users.get(phone);
-    if(!u) u={phone,name}; else u.name=name||u.name;
+    if(!u) u={phone,name}; else {u.name=name||u.name; if(u.ws&&u.ws!==ws) try{u.ws.close(4001,'new connection')}catch{} }
     u.ws=ws; users.set(phone,u); ws.user=u;
     send(ws,{type:'welcome',user:{phone:u.phone,name:u.name},online:userList()});
+    sendPending(ws);
     broadcast({type:'presence',phone:u.phone,name:u.name,online:true},ws);
     return;
   }
@@ -55,11 +63,12 @@ function handleChat(ws, data){
     const key=roomKey(from,to); send(ws,{type:'history',to,messages:messages.get(key)||[]}); return;
   }
   if(data.type==='message'){
-    const to=cleanUser(data.to), text=cleanText(data.text); if(!to||!text) return;
+    const to=cleanUser(data.to), text=cleanText(data.text); if(!to||!text||to===from) return;
     const msg={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),from,to,text,time:new Date().toISOString()};
     const key=roomKey(from,to); const arr=messages.get(key)||[]; arr.push(msg); if(arr.length>200) arr.splice(0,arr.length-200); messages.set(key,arr);
-    send(ws,{type:'message',message:msg});
-    const target=users.get(to); if(target&&target.ws&&target.ws.readyState===1) send(target.ws,{type:'message',message:msg});
+    const target=users.get(to);
+    if(target&&target.ws&&target.ws.readyState===1) send(target.ws,{type:'message',message:msg});
+    send(ws,{type:'sent',message:msg});
     return;
   }
   if(data.type==='typing'){
@@ -72,6 +81,10 @@ server.on('upgrade',(request,socket,head)=>{
   const pathname=new URL(request.url,`http://${request.headers.host}`).pathname;
   if(pathname==='/diccorf'){
     diccorfWss.handleUpgrade(request,socket,head,ws=>diccorfWss.emit('connection',ws,request));
+  } else if(pathname==='/arma') {
+    socket.destroy();
+  } else {
+    socket.destroy();
   }
 });
 
